@@ -4,7 +4,7 @@ This document contains the approved content for our automated phishing simulatio
 
 ---
 
-## 📧 Template 1: Password Reset (Difficulty: Easy)
+## 📧 Template 1: Password Reset 
 **Subject:** Action Required: Password Expiry Notification
 
 **Body:**
@@ -25,7 +25,7 @@ IT Support Team
 
 ---
 
-## 📧 Template 2: Invoice Payment (Difficulty: Medium)
+## 📧 Template 2: Invoice Payment 
 **Subject:** Outstanding Invoice – Immediate Attention Required
 
 **Body:**
@@ -46,7 +46,7 @@ Accounts Team
 
 ---
 
-## 📧 Template 3: HR Document (Difficulty: Hard)
+##  Template 3: HR Document 
 **Subject:** Updated HR Policy – Review Required
 
 **Body:**
