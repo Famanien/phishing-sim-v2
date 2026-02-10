@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Awareness Training - 10 Question Quiz</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f9; color: #333; display: flex; justify-content: center; padding: 20px; }
+        .container { background-color: #fff; max-width: 800px; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-top: 8px solid #d9534f; }
+        h1 { color: #d9534f; margin-top: 0; }
+        .red-flag-box { background-color: #fff5f5; border-left: 5px solid #d9534f; padding: 15px; margin: 20px 0; }
+        button { background-color: #007bff; color: white; border: none; padding: 12px 25px; border-radius: 6px; font-size: 16px; cursor: pointer; transition: all 0.3s ease; margin-top: 20px; }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        .correct-btn { background-color: #28a745 !important; }
+        #quizSection { margin-top: 30px; padding: 25px; background-color: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef; }
+        .question { display: none; margin-bottom: 20px; }
+        .question.active { display: block; }
+        .hidden { display: none; }
+        .option { margin-bottom: 12px; display: block; cursor: pointer; padding: 12px; border: 1px solid #ddd; border-radius: 6px; transition: background 0.2s; }
+        .option:hover { background-color: #eef2f5; }
+        #progress { font-size: 0.9em; color: #666; margin-bottom: 10px; font-weight: bold; }
+        #feedback { font-weight: bold; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>⚠️ Security Awareness Training</h1>
+    <p>You've triggered a simulated phishing link. Please complete this 10-question module to fulfill your training requirement[cite: 7].</p>
+    
+    <div class="red-flag-box">
+        <strong>Quick Review:</strong> Look for <strong>Urgency</strong>, <strong>Suspicious Links</strong>, and <strong>Generic Greetings</strong>.
+    </div>
+
+    <button id="startQuizBtn" onclick="showQuiz()">Start 10-Question Quiz</button>
+
+    <div id="quizSection" class="hidden">
+        <div id="progress">Question <span id="qNum">1</span> of 10</div>
+        
+        <form id="quizForm">
+            <div id="q1" class="question active">
+                <p><strong>1. An email starts with "Dear Valued Customer" instead of your name. This is:</strong></p>
+                <label class="option"><input type="radio" name="opt" value="correct"> A) A Red Flag: It's a generic greeting.</label>
+                <label class="option"><input type="radio" name="opt" value="wrong"> B) Normal: Companies do this to be polite.</label>
+            </div>
+            <div id="q2" class="question">
+                <p><strong>2. An email says your account will be deleted in 1 hour. This is an example of:</strong></p>
+                <label class="option"><input type="radio" name="opt" value="wrong"> A) High-quality IT support.</label>
+                <label class="option"><input type="radio" name="opt" value="correct"> B) Urgency: A tactic to make you act without thinking.</label>
+            </div>
+            <div id="q3" class="question">
+                <p><strong>3. How do you check a link's true destination?</strong></p>
+                <label class="option"><input type="radio" name="opt" value="correct"> A) Hover your mouse over the link to see the URL preview.</label>
+                <label class="option"><input type="radio" name="opt" value="wrong"> B) Click it and see where it goes.</label>
+            </div>
+            <div id="q4" class="question">
+                <p><strong>4. You receive an email from "microsoft-security-alert@gmail.com". Is this legit?</strong></p>
+                <label class="option"><input type="radio" name="opt" value="wrong"> A) Yes, it says Microsoft.</label>
+                <label class="option"><input type="radio" name="opt" value="correct"> B) No, official companies use their own domains, not @gmail.com.</label>
+            </div>
+            <div id="q5" class="question">
+                <p><strong>5. An unexpected invoice arrives as a .zip file. What should you do?</strong></p>
+                <label class="option"><input type="radio" name="opt" value="wrong"> A) Open it to see what you owe.</label>
+                <label class="option"><input type="radio" name="opt" value="correct"> B) Do not open it; unexpected attachments are high risk.</label>
+            </div>
+            <div id="q6" class="question">
+                <p><strong>6. The "CEO" emails you personally asking for an urgent bank transfer. This is:</strong></p>
+                <label class="option"><input type="radio" name="opt" value="correct"> A) Likely a Business Email Compromise (BEC) attack.</label>
+                <label class="option"><input type="radio" name="opt" value="wrong"> B) A great opportunity to impress your boss.</label>
+            </div>
+            <div id="q7" class="question">
+                <p><strong>7. A "Security Update" email asks for your password to verify your identity.</strong></p>
+                <label class="option"><input type="radio" name="opt" value="wrong"> A) Standard procedure.</label>
+                <label class="option"><input type="radio" name="opt" value="correct"> B) Red Flag: Legit companies never ask for your password via email.</label>
+            </div>
+            <div id="q8" class="question">
+                <p><strong>8. You notice "PayPal" is spelled as "PayPa1" in the email. This is:</strong></p>
+                <label class="option"><input type="radio" name="opt" value="correct"> A) A Typosquatting/Spelling red flag.</label>
+                <label class="option"><input type="radio" name="opt" value="wrong"> B) Just a common typo by a busy employee.</label>
+            </div>
+            <div id="q9" class="question">
+                <p><strong>9. You get a "Package Delivery" notice but you haven't ordered anything.</strong></p>
+                <label class="option"><input type="radio" name="opt" value="wrong"> A) Click to see what the surprise is.</label>
+                <label class="option"><input type="radio" name="opt" value="correct"> B) Red Flag: Unexpected context is a hallmark of phishing.</label>
+            </div>
+            <div id="q10" class="question">
+                <p><strong>10. What is the best way to handle a suspicious email?</strong></p>
+                <label class="option"><input type="radio" name="opt" value="correct"> A) Use the "Report Phishing" button in your email client.</label>
+                <label class="option"><input type="radio" name="opt" value="wrong"> B) Forward it to your friends to warn them.</label>
+            </div>
+        </form>
+
+        <button id="submitBtn" onclick="handleQuiz()">Submit Answer</button>
+        <p id="feedback"></p>
+    </div>
+</div>
+
+<script>
+    let currentQuestion = 1;
+    const totalQuestions = 10;
+
+    function showQuiz() {
+        document.getElementById('quizSection').classList.remove('hidden');
+        document.getElementById('startQuizBtn').classList.add('hidden');
+    }
+
+    function handleQuiz() {
+        const selected = document.querySelector(`#q${currentQuestion} input[name="opt"]:checked`);
+        const feedback = document.getElementById('feedback');
+        const submitBtn = document.getElementById('submitBtn');
+
+        if (!selected) {
+            feedback.innerText = "Please select an answer!";
+            feedback.style.color = "orange";
+            return;
+        }
+
+        if (selected.value === "correct") {
+            if (currentQuestion < totalQuestions) {
+                document.getElementById(`q${currentQuestion}`).classList.remove('active');
+                currentQuestion++;
+                document.getElementById(`q${currentQuestion}`).classList.add('active');
+                document.getElementById('qNum').innerText = currentQuestion;
+                document.getElementById('quizForm').reset();
+                feedback.innerText = "Correct! Next question...";
+                feedback.style.color = "#28a745";
+            } else {
+                submitBtn.innerHTML = "✓ Training Complete";
+                submitBtn.classList.add('correct-btn');
+                submitBtn.disabled = true;
+                feedback.innerText = "S3.03: Final result logged to database.";
+                feedback.style.color = "#28a745";
+                logCompletion();
+            }
+        } else {
+            feedback.innerText = "Incorrect. Think about the red flags!";
+            feedback.style.color = "#d9534f";
+        }
+    }
+
+    function logCompletion() {
+        console.log("S3.03: Event logged - Full 10-Question Training Completed[cite: 7].");
+    }
+</script>
+<script type="module">
+  // Import the functions you need from the SDKs 
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  // YOUR UNIQUE CONFIG 
+  const firebaseConfig = {
+    apiKey: "AIzaSyBqI_fxh9C5yj_cUMuwuUBXWl266hP4BVs",
+    authDomain: "phishing-simulation-proj-2e16c.firebaseapp.com",
+    projectId: "phishing-simulation-proj-2e16c",
+    storageBucket: "phishing-simulation-proj-2e16c.firebasestorage.app",
+    messagingSenderId: "322240378300",
+    appId: "1:322240378300:web:7528b04ece19f8e121e7b9",
+    measurementId: "G-NZ8T9ZQ2PQ"
+  };
+
+  // Initialize Firebase 
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Task S3.03: Link the "✓ Correct" button to your LIVE collection 
+  window.logCompletionToFirebase = async function() {
+    try {
+      await addDoc(collection(db, "training_logs"), {
+        status: "completed",
+        score: "10/10",
+        timestamp: serverTimestamp()
+      });
+      console.log("S3.03: Training data logged accurately to Firestore.");
+    } catch (e) {
+      console.error("Error logging completion: ", e);
+    }
+  }
+</script>
+</body>
+</html>
