@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phishing Prevention Training - PhishSim</title>
+    <link rel="stylesheet" href="/static/dashboard.css">
+    <link rel="stylesheet" href="/static/training.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h2>🎯 PhishSim</h2>
+                <p>Admin Portal</p>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="/" class="nav-item">
+                    <span class="icon">📊</span>
+                    <span>Overview</span>
+                </a>
+                <a href="/" class="nav-item">
+                    <span class="icon">🚀</span>
+                    <span>Campaigns</span>
+                </a>
+                <a href="/" class="nav-item">
+                    <span class="icon">👥</span>
+                    <span>Users & Risk</span>
+                </a>
+                <a href="/" class="nav-item">
+                    <span class="icon">📈</span>
+                    <span>Metrics</span>
+                </a>
+                <a href="#" class="nav-item active">
+                    <span class="icon">🎓</span>
+                    <span>Training & Quiz</span>
+                </a>
+                <a href="/" class="nav-item">
+                    <span class="icon">⚙️</span>
+                    <span>Automation</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <p class="notice">⚠️ Simulation Only</p>
+                <p class="version">v5.0 - Sprint 5</p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header">
+                <h1>Phishing Prevention Training</h1>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" onclick="window.location.href='/'">
+                        🏠 Back to Dashboard
+                    </button>
+                </div>
+            </header>
+
+            <div class="training-container" id="quiz-container">
+                <!-- Intro Section -->
+                <div id="intro-area" class="card intro-card">
+                    <div class="intro-icon">🎓</div>
+                    <h2>Master the Art of Spotting Phishing</h2>
+                    <p class="description">
+                        Phishing attacks are the #1 way companies are breached. This interactive quiz will teach you
+                        the red flags to look for and the best practices to keep your accounts secure.
+                    </p>
+                    <div class="features-grid"
+                        style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin: 2rem 0; text-align: left;">
+                        <div class="feature-item">🚩 <strong>Identify Red Flags</strong></div>
+                        <div class="feature-item">🔗 <strong>Link Safety</strong></div>
+                        <div class="feature-item">📎 <strong>Attachment Security</strong></div>
+                        <div class="feature-item">🛡️ <strong>Security Best Practices</strong></div>
+                    </div>
+                    <button class="btn btn-primary btn-large" id="start-quiz-btn">
+                        🚀 Start Educational Quiz
+                    </button>
+                </div>
+
+                <!-- Question Section (Dynamic) -->
+                <div id="question-area" style="display: none;">
+                    <!-- Content populated by training.js -->
+                </div>
+
+                <!-- Results Section (Dynamic) -->
+                <div id="results-area" style="display: none;">
+                    <!-- Content populated by training.js -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/training.js"></script>
+</body>
+
+</html>

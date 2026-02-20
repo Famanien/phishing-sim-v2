@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phishing Simulation Admin Dashboard</title>
+    <link rel="stylesheet" href="/static/dashboard.css">
+    <link rel="stylesheet" href="/static/training.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h2>🎯 PhishSim</h2>
+                <p>Admin Portal</p>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-section="overview">
+                    <span class="icon">📊</span>
+                    <span>Overview</span>
+                </a>
+                <a href="#" class="nav-item" data-section="campaigns">
+                    <span class="icon">🚀</span>
+                    <span>Campaigns</span>
+                </a>
+                <a href="#" class="nav-item" data-section="users">
+                    <span class="icon">👥</span>
+                    <span>Users & Risk</span>
+                </a>
+                <a href="#" class="nav-item" data-section="metrics">
+                    <span class="icon">📈</span>
+                    <span>Metrics</span>
+                </a>
+                <a href="#" class="nav-item" data-section="automation">
+                    <span class="icon">⚙️</span>
+                    <span>Automation</span>
+                </a>
+                <a href="/training" class="nav-item" data-section="training">
+                    <span class="icon">🎓</span>
+                    <span>Training & Education</span>
+                </a>
+                <a href="/login" class="nav-item" target="_blank">
+                    <span class="icon">🔓</span>
+                    <span>Phishing Page Demo</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <p class="notice">⚠️ Simulation Only</p>
+                <p class="version">v5.0 - Sprint 5</p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header">
+                <h1 id="page-title">Dashboard Overview</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" id="run-weekly-btn">
+                        ▶️ Run Weekly Simulation
+                    </button>
+                </div>
+            </header>
+
+            <!-- Overview Section -->
+            <section id="overview-section" class="content-section active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-content">
+                            <h3 id="total-users">0</h3>
+                            <p>Total Users</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">🚀</div>
+                        <div class="stat-content">
+                            <h3 id="total-campaigns">0</h3>
+                            <p>Total Campaigns</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">⚡</div>
+                        <div class="stat-content">
+                            <h3 id="active-campaigns">0</h3>
+                            <p>Active Campaigns</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-content">
+                            <h3 id="avg-click-rate">0%</h3>
+                            <p>Avg Click Rate</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="two-col-grid">
+                    <div class="card">
+                        <h2>Risk Distribution</h2>
+                        <div class="risk-chart">
+                            <div class="risk-bar high">
+                                <div class="risk-label">
+                                    <span>🔴 High Risk</span>
+                                    <span id="high-risk-count">0</span>
+                                </div>
+                                <div class="risk-progress">
+                                    <div class="risk-fill high" id="high-risk-bar"></div>
+                                </div>
+                            </div>
+                            <div class="risk-bar medium">
+                                <div class="risk-label">
+                                    <span>🟡 Medium Risk</span>
+                                    <span id="medium-risk-count">0</span>
+                                </div>
+                                <div class="risk-progress">
+                                    <div class="risk-fill medium" id="medium-risk-bar"></div>
+                                </div>
+                            </div>
+                            <div class="risk-bar low">
+                                <div class="risk-label">
+                                    <span>🟢 Low Risk</span>
+                                    <span id="low-risk-count">0</span>
+                                </div>
+                                <div class="risk-progress">
+                                    <div class="risk-fill low" id="low-risk-bar"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2>Recent Activity</h2>
+                        <div id="recent-activity" class="activity-list">
+                            <p class="empty-state">No recent activity</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Campaigns Section -->
+            <section id="campaigns-section" class="content-section">
+                <div class="section-header">
+                    <button class="btn btn-secondary" id="create-campaign-btn">+ Create Campaign</button>
+                </div>
+
+                <div class="card">
+                    <h2>All Campaigns</h2>
+                    <div class="table-container">
+                        <table id="campaigns-table">
+                            <thead>
+                                <tr>
+                                    <th>Campaign Name</th>
+                                    <th>Difficulty</th>
+                                    <th>Status</th>
+                                    <th>Target</th>
+                                    <th>Start Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="campaigns-tbody">
+                                <tr>
+                                    <td colspan="6" class="empty-state">No campaigns yet</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Users Section -->
+            <section id="users-section" class="content-section">
+                <div class="card">
+                    <h2>Users & Risk Categories</h2>
+                    <div class="table-container">
+                        <table id="users-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Department</th>
+                                    <th>Risk Score</th>
+                                    <th>Risk Category</th>
+                                    <th>Repeat Offender</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-tbody">
+                                <tr>
+                                    <td colspan="6" class="empty-state">No users yet</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Metrics Section -->
+            <section id="metrics-section" class="content-section">
+                <div class="card">
+                    <h2>Campaign Metrics Comparison</h2>
+                    <div class="table-container">
+                        <table id="metrics-table">
+                            <thead>
+                                <tr>
+                                    <th>Campaign</th>
+                                    <th>Difficulty</th>
+                                    <th>Status</th>
+                                    <th>Sent</th>
+                                    <th>Click Rate</th>
+                                    <th>Report Rate</th>
+                                    <th>Training Completion</th>
+                                </tr>
+                            </thead>
+                            <tbody id="metrics-tbody">
+                                <tr>
+                                    <td colspan="7" class="empty-state">No metrics available</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card" id="trend-card" style="display: none;">
+                    <h2>Trend Analysis</h2>
+                    <div id="trend-content"></div>
+                </div>
+            </section>
+
+            <!-- Automation Section -->
+            <section id="automation-section" class="content-section">
+                <div class="card">
+                    <h2>Weekly Simulation Scheduler</h2>
+                    <p class="description">This automated scheduler runs weekly phishing simulations based on predefined
+                        rules.</p>
+
+                    <div class="automation-controls">
+                        <div class="form-group">
+                            <label for="week-number">Week Number:</label>
+                            <input type="number" id="week-number" value="5" min="1" max="52">
+                        </div>
+
+                        <button class="btn btn-primary btn-large" id="trigger-automation">
+                            ▶️ Run Weekly Simulation Now
+                        </button>
+                    </div>
+
+                    <div class="automation-rules">
+                        <h3>Automation Rules</h3>
+                        <ul>
+                            <li>📧 <strong>All Users:</strong> Receive 1 medium difficulty campaign per week</li>
+                            <li>🔴 <strong>High-Risk Users:</strong> Receive +1 additional hard difficulty campaign</li>
+                            <li>📚 <strong>Click Action:</strong> Training becomes mandatory</li>
+                            <li>🔁 <strong>Repeat Click:</strong> Extra quiz required</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Automation Results</h2>
+                    <div id="automation-results" class="results-container">
+                        <p class="empty-state">No automation runs yet. Click "Run Weekly Simulation" to start.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Training Section -->
+            <section id="training-section" class="content-section">
+                <div class="training-container" id="quiz-container">
+                    <!-- Intro Section -->
+                    <div id="intro-area" class="card intro-card">
+                        <div class="intro-icon">🎓</div>
+                        <h2>Master the Art of Spotting Phishing</h2>
+                        <p class="description">
+                            Phishing attacks are the #1 way companies are breached. This interactive quiz will teach you
+                            the red flags to look for and the best practices to keep your accounts secure.
+                        </p>
+                        <div class="features-grid"
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 2rem 0; text-align: left;">
+                            <div class="feature-item">🚩 <strong>Identify Red Flags</strong></div>
+                            <div class="feature-item">🔗 <strong>Link Safety</strong></div>
+                            <div class="feature-item">📎 <strong>Attachment Security</strong></div>
+                            <div class="feature-item">🛡️ <strong>Security Best Practices</strong></div>
+                        </div>
+                        <button class="btn btn-primary btn-large" id="start-quiz-btn">
+                            🚀 Start Educational Quiz
+                        </button>
+                    </div>
+
+                    <!-- Question Section (Dynamic) -->
+                    <div id="question-area" style="display: none;">
+                        <!-- Content populated by dashboard.js -->
+                    </div>
+
+                    <!-- Results Section (Dynamic) -->
+                    <div id="results-area" style="display: none;">
+                        <!-- Content populated by dashboard.js -->
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal for Campaign Creation -->
+    <div id="campaign-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Create New Campaign</h2>
+            <form id="campaign-form">
+                <div class="form-group">
+                    <label for="campaign-name">Campaign Name:</label>
+                    <input type="text" id="campaign-name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="campaign-difficulty">Difficulty:</label>
+                    <select id="campaign-difficulty" required>
+                        <option value="Easy">Easy</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Hard">Hard</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="campaign-template">Template:</label>
+                    <select id="campaign-template" required>
+                        <option value="">Select a template...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="campaign-segment">Target Segment:</label>
+                    <select id="campaign-segment" required>
+                        <option value="all">All Users</option>
+                        <option value="high_risk">High Risk Only</option>
+                        <option value="medium_risk">Medium Risk Only</option>
+                        <option value="low_risk">Low Risk Only</option>
+                    </select>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary">Create Campaign</button>
+                    <button type="button" class="btn btn-secondary" id="cancel-campaign">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/dashboard.js"></script>
+</body>
+
+</html>
