@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account – Secure Corporate Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f3f4f6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #1f2937;
+            padding: 2rem 1rem;
+        }
+
+        /* ── Top bar ─────────────────────────────────────────── */
+        .corp-topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #1e3a5f;
+            color: white;
+            font-size: 0.78rem;
+            padding: .45rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .corp-topbar a {
+            color: #93c5fd;
+            text-decoration: none;
+        }
+
+        /* ── Card ────────────────────────────────────────────── */
+        .signup-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, .1), 0 1px 4px rgba(0, 0, 0, .06);
+            width: 100%;
+            max-width: 440px;
+            overflow: hidden;
+            position: relative;
+            margin-top: 3rem;
+        }
+
+        .card-header {
+            background: #1e3a5f;
+            padding: 2rem 2rem 1.5rem;
+            text-align: center;
+            color: white;
+        }
+
+        .corp-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .6rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: .25rem;
+        }
+
+        .corp-logo-icon {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, .15);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .card-header p {
+            font-size: .8rem;
+            color: rgba(255, 255, 255, .7);
+            margin-top: .25rem;
+        }
+
+        /* ── Form ─────────────────────────────────────────────── */
+        .card-body {
+            padding: 2rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            display: block;
+            font-size: .8rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: .4rem;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: .75rem 1rem;
+            border: 1.5px solid #d1d5db;
+            border-radius: 8px;
+            font-size: .925rem;
+            font-family: inherit;
+            transition: border-color .2s, box-shadow .2s;
+            background: #fafafa;
+        }
+
+        input:focus {
+            border-color: #2563eb;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+            background: white;
+        }
+
+        input.error {
+            border-color: #dc2626;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, .1);
+        }
+
+        .error-msg {
+            font-size: .75rem;
+            color: #dc2626;
+            margin-top: .35rem;
+            display: none;
+        }
+
+        .error-msg.visible {
+            display: block;
+        }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .toggle-pw {
+            position: absolute;
+            right: .85rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #9ca3af;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .strength-bar {
+            height: 4px;
+            border-radius: 2px;
+            margin-top: .5rem;
+            background: #e5e7eb;
+            overflow: hidden;
+            transition: all .3s;
+        }
+
+        .strength-bar-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width .3s, background .3s;
+            width: 0%;
+        }
+
+        .strength-label {
+            font-size: .7rem;
+            color: #9ca3af;
+            margin-top: .25rem;
+        }
+
+        .btn-signup {
+            width: 100%;
+            padding: .85rem;
+            background: #1e3a5f;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background .2s, transform .15s;
+            margin-top: .5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+        }
+
+        .btn-signup:hover {
+            background: #16304f;
+            transform: translateY(-1px);
+        }
+
+        .btn-signup:active {
+            transform: translateY(0);
+        }
+
+        .btn-signup:disabled {
+            opacity: .7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-signup .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, .4);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .alert-box {
+            padding: .8rem 1rem;
+            border-radius: 8px;
+            font-size: .85rem;
+            margin-bottom: 1.25rem;
+            display: none;
+        }
+
+        .alert-box.error {
+            background: rgba(220, 38, 38, .08);
+            border: 1px solid rgba(220, 38, 38, .25);
+            color: #dc2626;
+            display: block;
+        }
+
+        .alert-box.success {
+            background: rgba(16, 185, 129, .08);
+            border: 1px solid rgba(16, 185, 129, .25);
+            color: #059669;
+            display: block;
+        }
+
+        /* ── Footer ─────────────────────────────────────────── */
+        .card-footer {
+            background: #f9fafb;
+            border-top: 1px solid #f3f4f6;
+            padding: 1rem 2rem;
+            text-align: center;
+            font-size: .8rem;
+            color: #6b7280;
+        }
+
+        .card-footer a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .card-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .security-badges {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: .65rem;
+            font-size: .7rem;
+            color: #9ca3af;
+        }
+
+        /* ── Success overlay ─────────────────────────────────── */
+        .success-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .35s;
+        }
+
+        .success-overlay.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .success-card {
+            background: white;
+            border-radius: 16px;
+            max-width: 440px;
+            width: 100%;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            box-shadow: 0 24px 60px rgba(0,0,0,.25);
+            transform: scale(.92) translateY(20px);
+            transition: transform .4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .success-overlay.visible .success-card {
+            transform: scale(1) translateY(0);
+        }
+
+        .success-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .success-card h2 {
+            font-size: 1.3rem;
+            color: #1f2937;
+            margin-bottom: .5rem;
+        }
+
+        .success-card p {
+            font-size: .875rem;
+            color: #6b7280;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .success-card .email-highlight {
+            display: inline-block;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1d4ed8;
+            padding: .35rem .9rem;
+            border-radius: 20px;
+            font-size: .8rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+        }
+
+        .btn-continue {
+            display: inline-block;
+            padding: .8rem 2rem;
+            background: #1e3a5f;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: .95rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background .2s;
+        }
+
+        .btn-continue:hover {
+            background: #16304f;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Top bar -->
+    <div class="corp-topbar">
+        <span>🔒 Enterprise Identity Services</span>
+        <span><a href="#">Help</a> &nbsp;|&nbsp; <a href="#">Privacy</a></span>
+    </div>
+
+    <!-- Sign-up card -->
+    <div class="signup-container">
+        <div class="card-header">
+            <div class="corp-logo">
+                <div class="corp-logo-icon">🏢</div>
+                CorporateSecure
+            </div>
+            <p>Create your organisation account</p>
+        </div>
+
+        <div class="card-body">
+            <!-- Alert box -->
+            <div class="alert-box" id="alert-box"></div>
+
+            <form id="signup-form" novalidate>
+                <div class="form-group">
+                    <label for="fullname">Full Name</label>
+                    <input type="text" id="fullname" name="fullname" placeholder="Jane Smith" required autocomplete="name">
+                    <span class="error-msg" id="err-fullname">Please enter your full name.</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Work Email</label>
+                    <input type="email" id="email" name="email" placeholder="you@company.com" required autocomplete="email">
+                    <span class="error-msg" id="err-email">Please enter a valid email address.</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="department">Department</label>
+                    <input type="text" id="department" name="department" placeholder="e.g. Finance, IT, HR" autocomplete="organization-title">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="new-password">
+                        <button type="button" class="toggle-pw" onclick="togglePw('password', this)" aria-label="Show password">👁️</button>
+                    </div>
+                    <div class="strength-bar"><div class="strength-bar-fill" id="strength-fill"></div></div>
+                    <div class="strength-label" id="strength-label"></div>
+                    <span class="error-msg" id="err-password">Password must be at least 8 characters.</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm-password">Confirm Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="confirm-password" name="confirm-password" placeholder="••••••••" required autocomplete="new-password">
+                        <button type="button" class="toggle-pw" onclick="togglePw('confirm-password', this)" aria-label="Show password">👁️</button>
+                    </div>
+                    <span class="error-msg" id="err-confirm">Passwords do not match.</span>
+                </div>
+
+                <button type="submit" class="btn-signup" id="signup-btn">
+                    <span class="spinner" id="signup-spinner"></span>
+                    <span id="signup-label">Create Account</span>
+                </button>
+            </form>
+        </div>
+
+        <div class="card-footer">
+            Already have an account? <a href="/login">Sign in</a>
+            <div class="security-badges">
+                <span>🔐 256-bit encrypted</span>
+                <span>🛡️ SOC 2 compliant</span>
+                <span>✅ ISO 27001</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success overlay -->
+    <div class="success-overlay" id="success-overlay">
+        <div class="success-card">
+            <div class="success-icon">✅</div>
+            <h2>Account Created!</h2>
+            <p>Welcome aboard. We've sent a confirmation email to:</p>
+            <span class="email-highlight" id="success-email"></span>
+            <p>Please check your inbox and <strong>click the link in the email</strong> to complete your first sign-in.</p>
+            <a href="/login" class="btn-continue">Go to Sign In →</a>
+        </div>
+    </div>
+
+    <script>
+        // ── Password visibility toggle ─────────────────────────
+        function togglePw(id, btn) {
+            const input = document.getElementById(id);
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                btn.textContent = '👁️';
+            }
+        }
+
+        // ── Password strength meter ────────────────────────────
+        document.getElementById('password').addEventListener('input', function () {
+            const val = this.value;
+            const fill = document.getElementById('strength-fill');
+            const label = document.getElementById('strength-label');
+            let score = 0;
+            if (val.length >= 8) score++;
+            if (/[A-Z]/.test(val)) score++;
+            if (/[0-9]/.test(val)) score++;
+            if (/[^A-Za-z0-9]/.test(val)) score++;
+
+            const widths = ['0%', '25%', '50%', '75%', '100%'];
+            const colors = ['#e5e7eb', '#ef4444', '#f59e0b', '#3b82f6', '#10b981'];
+            const labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+            fill.style.width = widths[score];
+            fill.style.background = colors[score];
+            label.textContent = val ? labels[score] : '';
+            label.style.color = colors[score];
+        });
+
+        // ── Form submission ───────────────────────────────────
+        document.getElementById('signup-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const fullname = document.getElementById('fullname').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const department = document.getElementById('department').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            // Clear previous errors
+            document.querySelectorAll('.error-msg').forEach(el => el.classList.remove('visible'));
+            document.querySelectorAll('input').forEach(el => el.classList.remove('error'));
+            document.getElementById('alert-box').className = 'alert-box';
+
+            let valid = true;
+
+            if (!fullname) {
+                showFieldError('fullname', 'err-fullname');
+                valid = false;
+            }
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                showFieldError('email', 'err-email');
+                valid = false;
+            }
+            if (password.length < 8) {
+                showFieldError('password', 'err-password');
+                valid = false;
+            }
+            if (password !== confirmPassword) {
+                showFieldError('confirm-password', 'err-confirm');
+                valid = false;
+            }
+
+            if (!valid) return;
+
+            // Show loading state
+            const btn = document.getElementById('signup-btn');
+            const spinner = document.getElementById('signup-spinner');
+            const label = document.getElementById('signup-label');
+            btn.disabled = true;
+            spinner.style.display = 'block';
+            label.textContent = 'Creating account…';
+
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: fullname, email, department, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Show success overlay
+                    document.getElementById('success-email').textContent = email;
+                    document.getElementById('success-overlay').classList.add('visible');
+                    // Auto-redirect after 4 seconds
+                    setTimeout(() => { window.location.href = '/login'; }, 4000);
+                } else {
+                    showAlert(data.error || 'Registration failed. Please try again.', 'error');
+                    btn.disabled = false;
+                    spinner.style.display = 'none';
+                    label.textContent = 'Create Account';
+                }
+            } catch (err) {
+                showAlert('Network error. Please check your connection and try again.', 'error');
+                btn.disabled = false;
+                spinner.style.display = 'none';
+                label.textContent = 'Create Account';
+            }
+        });
+
+        function showFieldError(inputId, errId) {
+            document.getElementById(inputId).classList.add('error');
+            document.getElementById(errId).classList.add('visible');
+        }
+
+        function showAlert(message, type) {
+            const box = document.getElementById('alert-box');
+            box.textContent = message;
+            box.className = 'alert-box ' + type;
+        }
+    </script>
+</body>
+
+</html>

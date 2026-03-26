@@ -10,6 +10,8 @@ echo Checking Python installation...
 python --version
 if errorlevel 1 (
     echo ERROR: Python is not installed or not in PATH
+    echo Please install Python from https://python.org
+    echo Make sure to tick "Add Python to PATH" during installation
     pause
     exit /b 1
 )
@@ -26,11 +28,13 @@ if errorlevel 1 (
 echo.
 echo Starting Flask server...
 echo.
-echo Dashboard will be available at: http://localhost:5000
+echo Dashboard: http://localhost:5000
+echo Training:  http://localhost:5000/training
+echo Analytics: http://localhost:5000 (click Analytics in sidebar)
+echo.
 echo Press Ctrl+C to stop the server
 echo.
 
-cd backend
-python app.py
+python backend\app.py
 
 pause

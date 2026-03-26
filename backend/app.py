@@ -6,13 +6,22 @@ Provides campaign management, metrics tracking, and automation controls
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 import os
 import sys
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from datetime import datetime
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from backend.database import Database
-from backend.automation import CampaignAutomation, MetricsTracker
+try:
+    from backend.database import Database
+    from backend.automation import CampaignAutomation, MetricsTracker
+except ImportError:
+    from database import Database
+    from automation import CampaignAutomation, MetricsTracker
+
 
 app = Flask(__name__, 
             template_folder='../templates',
@@ -262,10 +271,236 @@ def get_dashboard_stats():
     })
 
 
+# -------------------------------------------------------------------------
+# Sprint 6 – Analytics & Behaviour Analysis endpoints
+# -------------------------------------------------------------------------
+
+@app.route('/api/analytics/kpis', methods=['GET'])
+def get_kpi_summary():
+    """Overall KPI summary across all campaigns"""
+    kpis = db.get_kpi_summary()
+    return jsonify({'success': True, 'kpis': kpis})
+
+
+@app.route('/api/analytics/behaviour-trends', methods=['GET'])
+def get_behaviour_trends():
+    """Per-campaign behaviour trend table with KPIs"""
+    trends = db.get_behaviour_trend_report()
+    return jsonify({'success': True, 'trends': trends})
+
+
+@app.route('/api/analytics/repeat-offenders', methods=['GET'])
+def get_repeat_offenders():
+    """List of repeat offenders with click counts"""
+    offenders = db.get_repeat_offenders()
+    # Also refresh risk flags while we're here
+    for o in offenders:
+        db.update_user_risk(o['user_id'])
+    return jsonify({'success': True, 'offenders': offenders, 'total': len(offenders)})
+
+
+@app.route('/api/analytics/pattern-insights', methods=['GET'])
+def get_pattern_insights():
+    """Pattern insights: top templates + department vulnerability"""
+    insights = db.get_pattern_insights()
+    return jsonify({'success': True, 'insights': insights})
+
+
+@app.route('/api/analytics/export-repeat-offenders', methods=['GET'])
+def export_repeat_offenders():
+    """Download repeat offenders as CSV"""
+    from flask import Response
+    csv_data = db.export_repeat_offenders_csv()
+    return Response(
+        csv_data,
+        mimetype='text/csv',
+        headers={'Content-Disposition': 'attachment; filename=repeat_offenders.csv'}
+    )
+
+
+@app.route('/api/analytics/risk-distribution', methods=['GET'])
+def get_risk_distribution():
+    """User risk tier distribution: High / Medium / Low counts"""
+    dist = db.get_risk_distribution()
+    return jsonify({'success': True, 'distribution': dist})
+
+
+@app.route('/api/analytics/campaign-improvement', methods=['GET'])
+def get_campaign_improvement():
+    """First vs latest campaign KPI comparison"""
+    improvement = db.get_campaign_improvement()
+    return jsonify({'success': True, 'improvement': improvement})
+
+
+@app.route('/api/analytics/metrics-by-risk-group', methods=['GET'])
+def get_metrics_by_risk_group():
+    """Avg click / report / training rates broken down by risk tier"""
+    data = db.get_metrics_by_risk_group()
+    return jsonify({'success': True, 'metrics': data})
+
+
 @app.route('/login')
 def login():
     """Phishing simulation landing page"""
     return render_template('login.html')
+
+
+@app.route('/signup')
+def signup():
+    """User registration page"""
+    return render_template('signup.html')
+
+
+@app.route('/api/register', methods=['POST'])
+def register_user():
+    """Register a new user and send them a phishing simulation email."""
+    data = request.json or {}
+    name = (data.get('name') or '').strip()
+    email = (data.get('email') or '').strip()
+    department = (data.get('department') or 'General').strip()
+
+    if not name or not email:
+        return jsonify({'success': False, 'error': 'Name and email are required.'}), 400
+
+    # Store in the DB (password is not stored – this is a simulation tool)
+    try:
+        user_id = db.add_user(email=email, name=name, department=department)
+    except Exception as exc:
+        # User might already exist – that's fine for the simulation
+        user_id = None
+        print(f'[register] DB note: {exc}')
+
+    # Send phishing simulation email
+    send_phishing_email(name=name, to_email=email)
+
+    return jsonify({'success': True, 'user_id': user_id})
+
+
+# ── Email helper ──────────────────────────────────────────────────────────────
+
+def send_phishing_email(name: str, to_email: str):
+    """
+    Send a realistic-looking corporate phishing simulation email.
+    The link points back to /login (the phishing landing page).
+
+    SMTP credentials are read from environment variables:
+        SMTP_USER  – Gmail address used to send (e.g. youraccount@gmail.com)
+        SMTP_PASS  – Gmail App Password (not your regular password)
+        SMTP_HOST  – optional, defaults to smtp.gmail.com
+        SMTP_PORT  – optional, defaults to 587
+        APP_HOST   – base URL of this app, defaults to http://127.0.0.1:5000
+
+    If SMTP_USER / SMTP_PASS are not set the email body is printed to stdout
+    so the UI flow still works without email credentials configured.
+    """
+    smtp_user = os.environ.get('SMTP_USER', '')
+    smtp_pass = os.environ.get('SMTP_PASS', '')
+    smtp_host = os.environ.get('SMTP_HOST', 'smtp.gmail.com')
+    smtp_port = int(os.environ.get('SMTP_PORT', 587))
+    app_host  = os.environ.get('APP_HOST', 'http://127.0.0.1:5000')
+
+    login_url = f'{app_host}/login'
+    first_name = name.split()[0] if name else 'User'
+
+    subject = 'Action Required: Verify Your CorporateSecure Account'
+
+    html_body = f"""\
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {{ font-family: Arial, sans-serif; background:#f3f4f6; margin:0; padding:0; }}
+    .wrapper {{ max-width:600px; margin:30px auto; background:white; border-radius:8px;
+                overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,.1); }}
+    .header {{ background:#1e3a5f; padding:24px 32px; text-align:center; }}
+    .header h1 {{ color:white; font-size:1.2rem; margin:0; }}
+    .header p  {{ color:rgba(255,255,255,.7); font-size:.8rem; margin:4px 0 0; }}
+    .body {{ padding:32px; color:#374151; line-height:1.7; }}
+    .body h2 {{ font-size:1.1rem; color:#1f2937; margin-top:0; }}
+    .cta-wrap {{ text-align:center; margin:28px 0; }}
+    .cta {{ display:inline-block; padding:14px 34px; background:#1e3a5f;
+            color:white; text-decoration:none; border-radius:8px;
+            font-size:.95rem; font-weight:600; }}
+    .cta:hover {{ background:#16304f; }}
+    .notice {{ background:#fef9c3; border:1px solid #fde68a; border-radius:6px;
+               padding:12px 16px; font-size:.8rem; color:#92400e; margin-top:16px; }}
+    .footer {{ background:#f9fafb; padding:16px 32px; text-align:center;
+               font-size:.72rem; color:#9ca3af; border-top:1px solid #f3f4f6; }}
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="header">
+      <h1>🏢 CorporateSecure</h1>
+      <p>Enterprise Identity Services</p>
+    </div>
+    <div class="body">
+      <h2>Hello {first_name},</h2>
+      <p>
+        Thank you for registering. To activate your account and complete the
+        verification process, please sign in using the secure link below.
+        This link will expire in <strong>24 hours</strong>.
+      </p>
+      <div class="cta-wrap">
+        <a class="cta" href="{login_url}">✅ Verify &amp; Sign In</a>
+      </div>
+      <p>
+        If you did not create this account, please disregard this email or
+        contact your IT support team immediately.
+      </p>
+      <div class="notice">
+        ⚠️ <strong>Security reminder:</strong> Never share your password with anyone,
+        including IT staff. CorporateSecure will never ask for your password via email.
+      </div>
+    </div>
+    <div class="footer">
+      Protected by Enterprise Identity Service &nbsp;•&nbsp; © 2025 CorporateSecure<br>
+      🔐 256-bit encrypted &nbsp;|&nbsp; 🛡️ SOC 2 compliant &nbsp;|&nbsp; ✅ ISO 27001
+    </div>
+  </div>
+</body>
+</html>"""
+
+    text_body = (
+        f'Hello {first_name},\n\n'
+        f'Thank you for registering with CorporateSecure.\n'
+        f'Please sign in to verify your account:\n\n'
+        f'  {login_url}\n\n'
+        f'This link expires in 24 hours.\n\n'
+        f'If you did not create this account, ignore this email.\n\n'
+        f'— CorporateSecure IT Team'
+    )
+
+    if not smtp_user or not smtp_pass:
+        # Graceful fallback: log what would have been sent
+        print('=' * 60)
+        print(f'[PhishSim] SMTP not configured – would have sent:')
+        print(f'  To:      {to_email}')
+        print(f'  Subject: {subject}')
+        print(f'  Link:    {login_url}')
+        print('  (Set SMTP_USER and SMTP_PASS env vars to enable real email)')
+        print('=' * 60)
+        return
+
+    try:
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From']    = f'CorporateSecure IT <{smtp_user}>'
+        msg['To']      = to_email
+
+        msg.attach(MIMEText(text_body, 'plain'))
+        msg.attach(MIMEText(html_body, 'html'))
+
+        with smtplib.SMTP(smtp_host, smtp_port) as server:
+            server.ehlo()
+            server.starttls()
+            server.login(smtp_user, smtp_pass)
+            server.sendmail(smtp_user, [to_email], msg.as_string())
+
+        print(f'[PhishSim] Phishing email sent to {to_email}')
+    except Exception as exc:
+        print(f'[PhishSim] Email send failed: {exc}')
 
 
 @app.route('/training')
@@ -539,6 +774,32 @@ def seed_quiz_questions():
         difficulty="Medium"
     )
     
+    # Sprint 6: MFA-specific question
+    db.add_quiz_question(
+        question="You receive an urgent email saying 'Your MFA token has expired – click here to re-authenticate within 10 minutes or lose access'. What should you do?",
+        option_a="Click the link immediately to avoid losing access",
+        option_b="Ignore the email – MFA tokens don't expire like this",
+        option_c="Verify by logging into your account portal directly, not via the email link",
+        option_d="Forward it to a colleague to check",
+        correct_answer="C",
+        explanation="Legitimate MFA systems never demand re-authentication via an emailed link with a tight deadline. This is a classic MFA-phishing technique. Always go directly to the official portal.",
+        category="MFA Phishing",
+        difficulty="Hard"
+    )
+
+    # Sprint 6: Repeat-offender awareness question
+    db.add_quiz_question(
+        question="You clicked a phishing simulation link last week and completed the training. Today a very similar email arrives. What is the BEST response?",
+        option_a="Click it – you already did the training so you can assess it safely",
+        option_b="Delete it without reading",
+        option_c="Report it to IT/security using the official report button",
+        option_d="Reply asking if it is genuine",
+        correct_answer="C",
+        explanation="Always report suspicious emails even if you recognise them as simulations. Clicking again makes you a repeat offender, and responding or deleting without reporting means the security team loses valuable intelligence.",
+        category="Best Practices",
+        difficulty="Medium"
+    )
+
     print("Quiz questions seeded successfully!")
 
 

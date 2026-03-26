@@ -607,6 +607,330 @@ class Database:
         }
 
 
+    # -------------------------------------------------------------------------
+    # Sprint 6 – Behaviour Analytics
+    # -------------------------------------------------------------------------
+
+    def get_repeat_offenders(self) -> List[Dict]:
+        """
+        Return users who clicked phishing links 2+ times across all campaigns,
+        or who clicked after completing training (repeat offender rules).
+        """
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT
+                u.id            AS user_id,
+                u.name,
+                u.email,
+                u.department,
+                COUNT(e.id)     AS total_clicks,
+                COUNT(DISTINCT e.campaign_id) AS campaigns_clicked,
+                ur.risk_score,
+                ur.risk_category,
+                ur.is_repeat_offender
+            FROM events e
+            JOIN users u  ON e.user_id    = u.id
+            LEFT JOIN user_risk ur ON ur.user_id = u.id
+            WHERE e.event_type = 'click'
+            GROUP BY e.user_id
+            HAVING COUNT(e.id) >= 2
+            ORDER BY total_clicks DESC
+        ''')
+        rows = [dict(r) for r in cursor.fetchall()]
+        conn.close()
+
+        # Also flag users who clicked AFTER completing training
+        conn2 = self.get_connection()
+        cursor2 = conn2.cursor()
+        cursor2.execute('''
+            SELECT DISTINCT e_click.user_id
+            FROM events e_click
+            JOIN events e_train
+                ON  e_click.user_id    = e_train.user_id
+                AND e_train.event_type = 'training_completed'
+                AND e_click.event_type = 'click'
+                AND e_click.timestamp  > e_train.timestamp
+        ''')
+        post_training_ids = {r[0] for r in cursor2.fetchall()}
+        conn2.close()
+
+        for row in rows:
+            row['clicked_after_training'] = row['user_id'] in post_training_ids
+
+        # Include users who clicked after training but only once
+        if post_training_ids:
+            existing_ids = {r['user_id'] for r in rows}
+            conn3 = self.get_connection()
+            cursor3 = conn3.cursor()
+            for uid in post_training_ids - existing_ids:
+                cursor3.execute('''
+                    SELECT u.id AS user_id, u.name, u.email, u.department,
+                           COUNT(e.id) AS total_clicks,
+                           COUNT(DISTINCT e.campaign_id) AS campaigns_clicked,
+                           ur.risk_score, ur.risk_category, ur.is_repeat_offender
+                    FROM events e
+                    JOIN users u      ON e.user_id     = u.id
+                    LEFT JOIN user_risk ur ON ur.user_id = u.id
+                    WHERE e.event_type = 'click' AND e.user_id = ?
+                    GROUP BY e.user_id
+                ''', (uid,))
+                extra = cursor3.fetchone()
+                if extra:
+                    d = dict(extra)
+                    d['clicked_after_training'] = True
+                    rows.append(d)
+            conn3.close()
+
+        return rows
+
+    def get_behaviour_trend_report(self) -> List[Dict]:
+        """
+        Return per-campaign behaviour KPIs sorted chronologically.
+        Each row: campaign name, difficulty, click_rate, report_rate,
+        training_completion_rate.
+        """
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT
+                c.id,
+                c.name              AS campaign,
+                c.difficulty,
+                c.start_date,
+                cm.total_sent,
+                ROUND(cm.click_rate,            1) AS click_rate,
+                ROUND(cm.report_rate,           1) AS report_rate,
+                ROUND(cm.training_completion_rate, 1) AS training_completion_rate,
+                cm.total_clicks,
+                cm.total_reports,
+                cm.training_completed
+            FROM campaign_metrics cm
+            JOIN campaigns c ON c.id = cm.campaign_id
+            ORDER BY c.start_date ASC, c.id ASC
+        ''')
+        rows = [dict(r) for r in cursor.fetchall()]
+        conn.close()
+        return rows
+
+    def get_pattern_insights(self) -> Dict:
+        """
+        Returns:
+          - top_templates: templates ranked by click_rate
+          - department_risk:  avg click rate per department
+          - repeat_offender_count: total repeat offenders
+        """
+        conn = self.get_connection()
+        cursor = conn.cursor()
+
+        # Top templates by click rate
+        cursor.execute('''
+            SELECT
+                t.name          AS template_name,
+                t.difficulty,
+                COUNT(e.id)     AS total_clicks,
+                COUNT(m.id)     AS total_sent,
+                CASE WHEN COUNT(m.id) > 0
+                     THEN ROUND(COUNT(e.id) * 100.0 / COUNT(m.id), 1)
+                     ELSE 0 END AS click_rate
+            FROM templates t
+            LEFT JOIN campaigns c   ON c.template_id = t.id
+            LEFT JOIN messages  m   ON m.campaign_id = c.id
+            LEFT JOIN events    e   ON e.message_id  = m.id
+                                   AND e.event_type  = 'click'
+            GROUP BY t.id
+            ORDER BY click_rate DESC
+            LIMIT 5
+        ''')
+        top_templates = [dict(r) for r in cursor.fetchall()]
+
+        # Department vulnerability
+        cursor.execute('''
+            SELECT
+                u.department,
+                COUNT(e.id)     AS total_clicks,
+                COUNT(m.id)     AS total_sent,
+                CASE WHEN COUNT(m.id) > 0
+                     THEN ROUND(COUNT(e.id) * 100.0 / COUNT(m.id), 1)
+                     ELSE 0 END AS click_rate
+            FROM users u
+            LEFT JOIN messages m ON m.user_id    = u.id
+            LEFT JOIN events   e ON e.message_id = m.id
+                                AND e.event_type = 'click'
+            WHERE u.department IS NOT NULL
+            GROUP BY u.department
+            ORDER BY click_rate DESC
+        ''')
+        department_risk = [dict(r) for r in cursor.fetchall()]
+
+        # Repeat offender count
+        cursor.execute('SELECT COUNT(*) FROM user_risk WHERE is_repeat_offender = 1')
+        repeat_count = cursor.fetchone()[0]
+
+        conn.close()
+        return {
+            'top_templates': top_templates,
+            'department_risk': department_risk,
+            'repeat_offender_count': repeat_count
+        }
+
+    def get_kpi_summary(self) -> Dict:
+        """
+        Return overall KPI metrics across all completed/active campaigns.
+        """
+        conn = self.get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute('''
+            SELECT
+                SUM(cm.total_sent)            AS total_sent,
+                SUM(cm.total_clicks)          AS total_clicks,
+                SUM(cm.total_reports)         AS total_reports,
+                SUM(cm.training_completed)    AS training_completed,
+                SUM(cm.training_started)      AS training_started,
+                CASE WHEN SUM(cm.total_sent) > 0
+                     THEN ROUND(SUM(cm.total_clicks)  * 100.0 / SUM(cm.total_sent), 1)
+                     ELSE 0 END AS overall_click_rate,
+                CASE WHEN SUM(cm.total_sent) > 0
+                     THEN ROUND(SUM(cm.total_reports) * 100.0 / SUM(cm.total_sent), 1)
+                     ELSE 0 END AS overall_report_rate,
+                CASE WHEN SUM(cm.training_started) > 0
+                     THEN ROUND(SUM(cm.training_completed) * 100.0 / SUM(cm.training_started), 1)
+                     ELSE 0 END AS overall_training_completion
+            FROM campaign_metrics cm
+        ''')
+        row = dict(cursor.fetchone())
+
+        cursor.execute('SELECT COUNT(*) FROM user_risk WHERE is_repeat_offender = 1')
+        row['repeat_offender_count'] = cursor.fetchone()[0]
+
+        conn.close()
+        return row
+
+    def export_repeat_offenders_csv(self) -> str:
+        """Return a CSV string of repeat offenders for download."""
+        offenders = self.get_repeat_offenders()
+        lines = ['Name,Email,Department,Total Clicks,Campaigns Clicked,Risk Category,Clicked After Training']
+        for o in offenders:
+            lines.append(
+                f"{o['name']},{o['email']},{o.get('department','')},"
+                f"{o['total_clicks']},{o['campaigns_clicked']},"
+                f"{o.get('risk_category','')},{o.get('clicked_after_training',False)}"
+            )
+        return '\n'.join(lines)
+
+    def get_risk_distribution(self) -> Dict:
+        """Return count of users in each risk tier and total messages for overview."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+
+        # Risk tier counts
+        cursor.execute('''
+            SELECT
+                SUM(CASE WHEN risk_category = 'High'   THEN 1 ELSE 0 END) AS high_count,
+                SUM(CASE WHEN risk_category = 'Medium' THEN 1 ELSE 0 END) AS medium_count,
+                SUM(CASE WHEN risk_category = 'Low'    THEN 1 ELSE 0 END) AS low_count,
+                COUNT(*) AS total_users
+            FROM user_risk
+        ''')
+        risk = dict(cursor.fetchone())
+
+        # Users with no risk record yet
+        cursor.execute('''
+            SELECT COUNT(*) FROM users u
+            LEFT JOIN user_risk ur ON ur.user_id = u.id
+            WHERE ur.user_id IS NULL
+        ''')
+        risk['unassessed'] = cursor.fetchone()[0]
+
+        # Total users across the system
+        cursor.execute('SELECT COUNT(*) FROM users')
+        risk['all_users'] = cursor.fetchone()[0]
+
+        conn.close()
+        return risk
+
+    def get_campaign_improvement(self) -> Dict:
+        """Compare first vs latest campaign KPIs to show improvement over time."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute('''
+            SELECT
+                c.name AS campaign,
+                c.start_date,
+                ROUND(cm.click_rate, 1)             AS click_rate,
+                ROUND(cm.report_rate, 1)            AS report_rate,
+                ROUND(cm.training_completion_rate, 1) AS training_completion_rate,
+                cm.total_sent
+            FROM campaign_metrics cm
+            JOIN campaigns c ON c.id = cm.campaign_id
+            ORDER BY c.start_date ASC, c.id ASC
+        ''')
+        rows = [dict(r) for r in cursor.fetchall()]
+        conn.close()
+
+        if not rows:
+            return {'has_data': False}
+
+        first = rows[0]
+        latest = rows[-1]
+
+        return {
+            'has_data': True,
+            'campaign_count': len(rows),
+            'first': first,
+            'latest': latest,
+            'click_delta':    round((latest['click_rate']   or 0) - (first['click_rate']   or 0), 1),
+            'report_delta':   round((latest['report_rate']  or 0) - (first['report_rate']  or 0), 1),
+            'training_delta': round((latest['training_completion_rate'] or 0) - (first['training_completion_rate'] or 0), 1),
+        }
+
+
+
+    def get_metrics_by_risk_group(self) -> List:
+        """Return avg click/report/training metrics broken down by risk category (High/Medium/Low)."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        # Build per-user aggregates from messages + events, then group by risk tier
+        cursor.execute('''
+            SELECT
+                ur.risk_category,
+                COUNT(DISTINCT ur.user_id) AS user_count,
+                ROUND(
+                    100.0 * SUM(CASE WHEN e_click.id IS NOT NULL THEN 1 ELSE 0 END)
+                    / NULLIF(COUNT(DISTINCT m.id), 0), 1
+                ) AS avg_click_rate,
+                ROUND(
+                    100.0 * SUM(CASE WHEN e_rep.id IS NOT NULL THEN 1 ELSE 0 END)
+                    / NULLIF(COUNT(DISTINCT m.id), 0), 1
+                ) AS avg_report_rate,
+                ROUND(
+                    100.0 * SUM(CASE WHEN e_train.id IS NOT NULL THEN 1 ELSE 0 END)
+                    / NULLIF(COUNT(DISTINCT m.id), 0), 1
+                ) AS avg_training_rate
+            FROM user_risk ur
+            LEFT JOIN messages m
+                ON m.user_id = ur.user_id
+            LEFT JOIN events e_click
+                ON e_click.message_id = m.id AND e_click.event_type = 'click'
+            LEFT JOIN events e_rep
+                ON e_rep.message_id = m.id AND e_rep.event_type = 'report'
+            LEFT JOIN events e_train
+                ON e_train.message_id = m.id AND e_train.event_type = 'training_completed'
+            WHERE ur.risk_category IN ('High', 'Medium', 'Low')
+            GROUP BY ur.risk_category
+            ORDER BY CASE ur.risk_category
+                WHEN 'High'   THEN 1
+                WHEN 'Medium' THEN 2
+                WHEN 'Low'    THEN 3
+            END
+        ''')
+        rows = [dict(r) for r in cursor.fetchall()]
+        conn.close()
+        return rows
+
+
 # Convenience function
 def get_database() -> Database:
     """Get database instance"""

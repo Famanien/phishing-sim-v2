@@ -4,16 +4,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phishing Simulation Admin Dashboard</title>
+    <title>PhishSim – Admin Dashboard</title>
+    <meta name="description"
+        content="Phishing Simulation Admin Dashboard – Campaign management, analytics and security training.">
     <link rel="stylesheet" href="/static/dashboard.css">
-    <link rel="stylesheet" href="/static/training.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <!-- jsPDF and html2canvas for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 
 <body>
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
     <div class="dashboard-container">
         <!-- Sidebar -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
+            <button class="sidebar-toggle" id="sidebar-toggle" title="Toggle sidebar">◀</button>
             <div class="logo">
                 <h2>🎯 PhishSim</h2>
                 <p>Admin Portal</p>
@@ -30,7 +39,7 @@
                 </a>
                 <a href="#" class="nav-item" data-section="users">
                     <span class="icon">👥</span>
-                    <span>Users & Risk</span>
+                    <span>Users &amp; Risk</span>
                 </a>
                 <a href="#" class="nav-item" data-section="metrics">
                     <span class="icon">📈</span>
@@ -40,34 +49,41 @@
                     <span class="icon">⚙️</span>
                     <span>Automation</span>
                 </a>
-                <a href="/training" class="nav-item" data-section="training">
+                <a href="#" class="nav-item" data-section="training">
                     <span class="icon">🎓</span>
-                    <span>Training & Education</span>
+                    <span>Training &amp; Education</span>
                 </a>
-                <a href="/login" class="nav-item" target="_blank">
-                    <span class="icon">🔓</span>
-                    <span>Phishing Page Demo</span>
+                <a href="#" class="nav-item" data-section="analytics">
+                    <span class="icon">🔍</span>
+                    <span>Analytics</span>
+                </a>
+                <a href="#" class="nav-item" data-section="compliance">
+                    <span class="icon">⚖️</span>
+                    <span>Legal &amp; Ethical</span>
                 </a>
             </nav>
 
             <div class="sidebar-footer">
                 <p class="notice">⚠️ Simulation Only</p>
-                <p class="version">v5.0 - Sprint 5</p>
+                <p class="version">v7.0 – Sprint 7</p>
             </div>
         </aside>
 
         <!-- Main Content -->
-        <main class="main-content">
+        <main class="main-content" id="main-content">
             <header class="header">
                 <h1 id="page-title">Dashboard Overview</h1>
                 <div class="header-actions">
+                    <button class="btn btn-secondary" id="export-btn" style="display:none;" onclick="window.print()">
+                        📋 Export
+                    </button>
                     <button class="btn btn-primary" id="run-weekly-btn">
                         ▶️ Run Weekly Simulation
                     </button>
                 </div>
             </header>
 
-            <!-- Overview Section -->
+            <!-- ─── Overview Section ─────────────────────────────────── -->
             <section id="overview-section" class="content-section active">
                 <div class="stats-grid">
                     <div class="stat-card">
@@ -77,7 +93,6 @@
                             <p>Total Users</p>
                         </div>
                     </div>
-
                     <div class="stat-card">
                         <div class="stat-icon">🚀</div>
                         <div class="stat-content">
@@ -85,7 +100,6 @@
                             <p>Total Campaigns</p>
                         </div>
                     </div>
-
                     <div class="stat-card">
                         <div class="stat-icon">⚡</div>
                         <div class="stat-content">
@@ -93,12 +107,18 @@
                             <p>Active Campaigns</p>
                         </div>
                     </div>
-
                     <div class="stat-card">
                         <div class="stat-icon">🎯</div>
                         <div class="stat-content">
                             <h3 id="avg-click-rate">0%</h3>
                             <p>Avg Click Rate</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🛡️</div>
+                        <div class="stat-content">
+                            <h3 id="security-score">—</h3>
+                            <p>Security Score</p>
                         </div>
                     </div>
                 </div>
@@ -146,7 +166,7 @@
                 </div>
             </section>
 
-            <!-- Campaigns Section -->
+            <!-- ─── Campaigns Section ────────────────────────────────── -->
             <section id="campaigns-section" class="content-section">
                 <div class="section-header">
                     <button class="btn btn-secondary" id="create-campaign-btn">+ Create Campaign</button>
@@ -154,6 +174,22 @@
 
                 <div class="card">
                     <h2>All Campaigns</h2>
+                    <div class="table-controls">
+                        <input class="table-search" id="campaign-search" placeholder="🔍 Search campaigns…"
+                            oninput="filterCampaigns()">
+                        <select class="filter-select" id="campaign-status-filter" onchange="filterCampaigns()">
+                            <option value="all">All Statuses</option>
+                            <option value="scheduled">Scheduled</option>
+                            <option value="active">Active</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                        <select class="filter-select" id="campaign-diff-filter" onchange="filterCampaigns()">
+                            <option value="all">All Difficulties</option>
+                            <option value="easy">Easy</option>
+                            <option value="medium">Medium</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </div>
                     <div class="table-container">
                         <table id="campaigns-table">
                             <thead>
@@ -173,13 +209,25 @@
                             </tbody>
                         </table>
                     </div>
+                    <div id="campaigns-count" style="margin-top:.6rem; font-size:.8rem; color:var(--text-muted);"></div>
                 </div>
             </section>
 
-            <!-- Users Section -->
+            <!-- ─── Users Section ────────────────────────────────────── -->
             <section id="users-section" class="content-section">
                 <div class="card">
-                    <h2>Users & Risk Categories</h2>
+                    <h2>Users &amp; Risk Categories</h2>
+                    <div class="table-controls">
+                        <input class="table-search" id="user-search"
+                            placeholder="🔍 Search by name, email or department…" oninput="filterUsers()">
+                        <div class="risk-chips">
+                            <button class="risk-chip active" data-risk="all" onclick="setRiskFilter(this)">All</button>
+                            <button class="risk-chip" data-risk="High" onclick="setRiskFilter(this)">🔴 High</button>
+                            <button class="risk-chip" data-risk="Medium" onclick="setRiskFilter(this)">🟡
+                                Medium</button>
+                            <button class="risk-chip" data-risk="Low" onclick="setRiskFilter(this)">🟢 Low</button>
+                        </div>
+                    </div>
                     <div class="table-container">
                         <table id="users-table">
                             <thead>
@@ -199,10 +247,11 @@
                             </tbody>
                         </table>
                     </div>
+                    <div id="users-count" style="margin-top:.6rem; font-size:.8rem; color:var(--text-muted);"></div>
                 </div>
             </section>
 
-            <!-- Metrics Section -->
+            <!-- ─── Metrics Section ──────────────────────────────────── -->
             <section id="metrics-section" class="content-section">
                 <div class="card">
                     <h2>Campaign Metrics Comparison</h2>
@@ -234,7 +283,7 @@
                 </div>
             </section>
 
-            <!-- Automation Section -->
+            <!-- ─── Automation Section ───────────────────────────────── -->
             <section id="automation-section" class="content-section">
                 <div class="card">
                     <h2>Weekly Simulation Scheduler</h2>
@@ -246,7 +295,6 @@
                             <label for="week-number">Week Number:</label>
                             <input type="number" id="week-number" value="5" min="1" max="52">
                         </div>
-
                         <button class="btn btn-primary btn-large" id="trigger-automation">
                             ▶️ Run Weekly Simulation Now
                         </button>
@@ -271,54 +319,517 @@
                 </div>
             </section>
 
-            <!-- Training Section -->
+            <!-- ─── Training Section ─────────────────────────────────── -->
             <section id="training-section" class="content-section">
                 <div class="training-container" id="quiz-container">
-                    <!-- Intro Section -->
                     <div id="intro-area" class="card intro-card">
-                        <div class="intro-icon">🎓</div>
-                        <h2>Master the Art of Spotting Phishing</h2>
-                        <p class="description">
+                        <div class="intro-icon" style="font-size:3rem;text-align:center;margin-bottom:1rem;">🎓</div>
+                        <h2 style="text-align:center;margin-bottom:1rem;">Master the Art of Spotting Phishing</h2>
+                        <p class="description" style="text-align:center;">
                             Phishing attacks are the #1 way companies are breached. This interactive quiz will teach you
                             the red flags to look for and the best practices to keep your accounts secure.
                         </p>
-                        <div class="features-grid"
-                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 2rem 0; text-align: left;">
-                            <div class="feature-item">🚩 <strong>Identify Red Flags</strong></div>
-                            <div class="feature-item">🔗 <strong>Link Safety</strong></div>
-                            <div class="feature-item">📎 <strong>Attachment Security</strong></div>
-                            <div class="feature-item">🛡️ <strong>Security Best Practices</strong></div>
+
+                        <div
+                            style="background:var(--bg-tertiary);border-radius:var(--radius);padding:1.25rem;margin:1.5rem 0;text-align:left;">
+                            <h3 style="margin-bottom:.75rem;">🚩 Key Phishing Red Flags</h3>
+                            <ul
+                                style="list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.5rem;">
+                                <li>⏰ <strong>Urgency/Threats</strong> – "Act now or lose access"</li>
+                                <li>📧 <strong>Mismatched domain</strong> – amaz0n.com vs amazon.com</li>
+                                <li>🔗 <strong>Suspicious links</strong> – hover to reveal real URL</li>
+                                <li>🔐 <strong>MFA pressure</strong> – emails demanding re-auth</li>
+                                <li>📎 <strong>.exe attachments</strong> – never open executables</li>
+                                <li>💷 <strong>Unexpected invoices</strong> – verify via another channel</li>
+                                <li>👤 <strong>Generic greetings</strong> – "Dear Customer"</li>
+                                <li>🖊️ <strong>Grammar errors</strong> – typos and odd phrasing</li>
+                            </ul>
                         </div>
-                        <button class="btn btn-primary btn-large" id="start-quiz-btn">
+
+                        <div
+                            style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.4);border-radius:var(--radius);padding:1.25rem;margin:1.5rem 0;text-align:left;">
+                            <h3 style="color:#f87171;margin-bottom:.5rem;">🔒 MFA Phishing – What to Watch For</h3>
+                            <p style="color:var(--text-secondary);margin-bottom:.75rem;">Multi-Factor Authentication
+                                phishing is one of the fastest growing attack vectors. Attackers create fake pages that
+                                relay your OTP in real-time ("Adversary-in-the-Middle").</p>
+                            <ul style="list-style:none;padding:0;">
+                                <li style="margin:.4rem 0;">🔴 Emails claiming your MFA token has <em>expired</em> or
+                                    <em>needs resetting</em>
+                                </li>
+                                <li style="margin:.4rem 0;">🔴 Links that look like your company's SSO or login portal
+                                </li>
+                                <li style="margin:.4rem 0;">🔴 Any message demanding your one-time code or push-approval
+                                </li>
+                                <li style="margin:.4rem 0;">🟢 <strong>Safe action:</strong> Always navigate to the
+                                    login portal directly – never via email links</li>
+                            </ul>
+                        </div>
+
+                        <button class="btn btn-primary btn-large" id="start-quiz-btn"
+                            style="width:100%;margin-top:1rem;">
                             🚀 Start Educational Quiz
                         </button>
                     </div>
 
-                    <!-- Question Section (Dynamic) -->
-                    <div id="question-area" style="display: none;">
-                        <!-- Content populated by dashboard.js -->
-                    </div>
+                    <div id="question-area" style="display: none;"></div>
+                    <div id="results-area" style="display: none;"></div>
+                </div>
+            </section>
 
-                    <!-- Results Section (Dynamic) -->
-                    <div id="results-area" style="display: none;">
-                        <!-- Content populated by dashboard.js -->
+            <!-- ─── Analytics Section ────────────────────────────────── -->
+            <section id="analytics-section" class="content-section">
+
+                <!-- Toolbar -->
+                <div class="analytics-toolbar">
+                    <div id="analytics-last-updated" style="color:var(--text-muted);font-size:.85rem;">Loading data…
+                    </div>
+                    <div class="analytics-toolbar-right">
+                        <div class="date-pills">
+                            <button class="date-pill" data-n="5" onclick="setDateFilter(this,5)">Last 5</button>
+                            <button class="date-pill" data-n="10" onclick="setDateFilter(this,10)">Last 10</button>
+                            <button class="date-pill active" data-n="0" onclick="setDateFilter(this,0)">All</button>
+                        </div>
+                        <button class="btn btn-secondary" onclick="window.print()">📋 Export</button>
+                        <button class="btn btn-secondary" id="analytics-refresh-btn" onclick="refreshAnalytics()">🔄
+                            Refresh</button>
                     </div>
                 </div>
+
+                <!-- Campaign Improvement Banner -->
+                <div id="improvement-banner" style="display:none;" class="improvement-banner"></div>
+
+                <!-- KPI Cards -->
+                <div class="stats-grid" id="kpi-grid" style="margin-bottom:2rem;">
+                    <div class="stat-card">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-content">
+                            <h3 id="kpi-click-rate">—</h3>
+                            <p>Overall Click Rate</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📣</div>
+                        <div class="stat-content">
+                            <h3 id="kpi-report-rate">—</h3>
+                            <p>Overall Report Rate</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🎓</div>
+                        <div class="stat-content">
+                            <h3 id="kpi-training-rate">—</h3>
+                            <p>Training Completion</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🔴</div>
+                        <div class="stat-content">
+                            <h3 id="kpi-repeat-count">—</h3>
+                            <p>Repeat Offenders</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="two-col-grid" style="margin-bottom:2rem;">
+                    <div class="card">
+                        <h2>📉 Click Rate Over Time</h2>
+                        <p style="color:var(--text-secondary);font-size:.85rem;margin-bottom:1rem;">Click rate trend
+                            across campaigns</p>
+                        <div class="chart-wrapper">
+                            <canvas id="click-rate-chart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h2>🛡️ Risk Distribution</h2>
+                        <p style="color:var(--text-secondary);font-size:.85rem;margin-bottom:1rem;">Users by risk
+                            category</p>
+                        <div class="chart-wrapper" style="display:flex;align-items:center;justify-content:center;">
+                            <canvas id="risk-donut-chart" style="max-height:200px;max-width:200px;"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="two-col-grid" style="margin-bottom:2rem;">
+                    <div class="card">
+                        <h2>🏢 Department Vulnerability</h2>
+                        <p style="color:var(--text-secondary);font-size:.85rem;margin-bottom:1rem;">Average click rate
+                            by department</p>
+                        <div class="chart-wrapper">
+                            <canvas id="dept-bar-chart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h2>🎯 Click Rate by Difficulty</h2>
+                        <p style="color:var(--text-secondary);font-size:.85rem;margin-bottom:1rem;">Average click rate
+                            per difficulty level</p>
+                        <div class="chart-wrapper">
+                            <canvas id="difficulty-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Risk Distribution + Metrics by Risk Group -->
+                <div class="two-col-grid" style="margin-bottom:2rem;">
+                    <div class="card">
+                        <h2>🛡️ User Risk Distribution (Detail)</h2>
+                        <p style="color:var(--text-secondary);margin-bottom:1.25rem;">Breakdown of users by risk
+                            category</p>
+                        <div id="risk-distribution-chart">
+                            <p class="empty-state">Loading…</p>
+                        </div>
+                        <div style="margin-top:1.5rem;">
+                            <h3 style="margin-bottom:.75rem;font-size:.95rem;">📊 Metrics by Risk Group</h3>
+                            <div class="table-container">
+                                <table id="risk-group-metrics-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Risk Tier</th>
+                                            <th>Users</th>
+                                            <th>Avg Click Rate</th>
+                                            <th>Avg Report Rate</th>
+                                            <th>Avg Training %</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="risk-group-tbody">
+                                        <tr>
+                                            <td colspan="5" class="empty-state">Loading…</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Behaviour Trend Table -->
+                    <div class="card">
+                        <h2>📈 Behaviour Trend Report</h2>
+                        <p style="color:var(--text-secondary);margin-bottom:1rem;">KPI evolution across campaigns —
+                            click a header to sort</p>
+                        <div class="table-container">
+                            <table id="trends-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th class="sortable" data-col="campaign" onclick="sortTrends('campaign')">
+                                            Campaign ⇅</th>
+                                        <th class="sortable" data-col="difficulty" onclick="sortTrends('difficulty')">
+                                            Difficulty ⇅</th>
+                                        <th class="sortable" data-col="total_sent" onclick="sortTrends('total_sent')">
+                                            Sent ⇅</th>
+                                        <th class="sortable" data-col="click_rate" onclick="sortTrends('click_rate')">
+                                            Click Rate ⇅</th>
+                                        <th class="sortable" data-col="report_rate" onclick="sortTrends('report_rate')">
+                                            Report Rate ⇅</th>
+                                        <th class="sortable" data-col="training_completion_rate"
+                                            onclick="sortTrends('training_completion_rate')">Training % ⇅</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="trends-tbody">
+                                    <tr>
+                                        <td colspan="7" class="empty-state">Loading…</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="trend-observations" style="margin-top:1.25rem;"></div>
+                    </div>
+                </div>
+
+                <!-- Repeat Offenders -->
+                <div class="card" style="margin-bottom:2rem;">
+                    <div
+                        style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;">
+                        <h2>🚨 Repeat Offenders</h2>
+                        <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;">
+                            <input type="text" id="offender-search" placeholder="🔍 Search by name, email or dept…"
+                                oninput="filterOffenders(this.value)" class="table-search" style="min-width:240px;">
+                            <a href="/api/analytics/export-repeat-offenders" class="btn btn-secondary">⬇️ Export CSV</a>
+                        </div>
+                    </div>
+                    <p style="color:var(--text-secondary);margin-bottom:1rem;">Users who clicked 2+ times, or clicked
+                        after completing training</p>
+                    <div class="table-container">
+                        <table id="offenders-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Department</th>
+                                    <th>Total Clicks</th>
+                                    <th>Campaigns Clicked</th>
+                                    <th>Risk</th>
+                                    <th>Clicked After Training</th>
+                                </tr>
+                            </thead>
+                            <tbody id="offenders-tbody">
+                                <tr>
+                                    <td colspan="7" class="empty-state">Loading…</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="offender-count-label" style="margin-top:.75rem;font-size:.8rem;color:var(--text-muted);">
+                    </div>
+                </div>
+
+                <!-- Top 3 Riskiest Templates -->
+                <div class="card" style="margin-bottom:2rem;">
+                    <h2>⚠️ Top 3 Riskiest Templates</h2>
+                    <p style="color:var(--text-secondary);margin-bottom:1.25rem;">The three phishing themes with the
+                        highest click rates — use these insights to target training content</p>
+                    <div id="top3-templates-grid" class="top3-grid">
+                        <p class="empty-state">Loading…</p>
+                    </div>
+                </div>
+
+                <!-- Pattern Insights -->
+                <div class="two-col-grid" style="margin-bottom:2rem;">
+                    <div class="card">
+                        <h2>🎣 Top Templates by Click Rate</h2>
+                        <p style="color:var(--text-secondary);margin-bottom:1rem;">Which phishing themes are most
+                            effective</p>
+                        <div class="table-container">
+                            <table id="template-insights-table">
+                                <thead>
+                                    <tr>
+                                        <th>Template</th>
+                                        <th>Difficulty</th>
+                                        <th>Click Rate</th>
+                                        <th>Sent</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="template-insights-tbody">
+                                    <tr>
+                                        <td colspan="4" class="empty-state">Loading…</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h2>🏢 Department Vulnerability</h2>
+                        <p style="color:var(--text-secondary);margin-bottom:1rem;">Which teams are most at risk</p>
+                        <div class="table-container">
+                            <table id="dept-insights-table">
+                                <thead>
+                                    <tr>
+                                        <th>Department</th>
+                                        <th>Click Rate</th>
+                                        <th>Total Sent</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dept-insights-tbody">
+                                    <tr>
+                                        <td colspan="3" class="empty-state">Loading…</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- ─── Legal & Ethical Compliance Section ──────────────── -->
+            <section id="compliance-section" class="content-section">
+
+                <!-- Header + Download Button -->
+                <div class="compliance-header">
+                    <div>
+                        <h2 class="compliance-title">⚖️ Legal &amp; Ethical Compliance Analysis</h2>
+                        <p class="compliance-subtitle">PhishSim v7.0 — Internal Security Awareness Platform &nbsp;|&nbsp; Prepared: March 2026</p>
+                    </div>
+                    <button class="btn btn-primary compliance-download-btn" onclick="downloadCompliancePDF()">
+                        ⬇ Download as PDF
+                    </button>
+                </div>
+
+                <!-- 1. Scope & Purpose -->
+                <div class="card compliance-card">
+                    <h3 class="compliance-section-heading">1. Scope &amp; Purpose</h3>
+                    <p>This document outlines the legal and ethical framework governing the use of <strong>PhishSim</strong>, an automated phishing simulation and security-awareness training platform deployed exclusively within authorised organisational boundaries.</p>
+                    <p>PhishSim is designed to:</p>
+                    <ul class="compliance-list">
+                        <li>📧 Simulate realistic phishing emails to measure and improve employee cyber-resilience</li>
+                        <li>📚 Deliver mandatory and voluntary security-awareness training to all staff</li>
+                        <li>📊 Provide management with actionable, anonymised risk metrics</li>
+                        <li>🔁 Automate escalation of training for high-risk or repeat-offending users</li>
+                    </ul>
+                    <div class="compliance-notice notice-blue">
+                        ⚠️ <strong>Authorised Use Only.</strong> This platform must only be operated by approved administrators within an organisation that has granted explicit, documented management consent. Any unapproved or external use is strictly prohibited and may constitute a criminal offence.
+                    </div>
+                </div>
+
+                <!-- 2. Legal Framework -->
+                <div class="card compliance-card">
+                    <h3 class="compliance-section-heading">2. Legal Framework</h3>
+
+                    <h4 class="compliance-subsection">2.1 UK General Data Protection Regulation (UK GDPR) &amp; Data Protection Act 2018</h4>
+                    <p>The processing of employee data within PhishSim is conducted under <strong>Article 6(1)(f) – Legitimate Interests</strong> of the UK GDPR, specifically the organisation's legitimate interest in protecting its IT systems and data from real phishing attacks. The following obligations apply:</p>
+                    <table class="compliance-table">
+                        <thead><tr><th>Principle</th><th>How PhishSim Complies</th></tr></thead>
+                        <tbody>
+                            <tr><td>Lawfulness, Fairness &amp; Transparency</td><td>Staff are informed of the simulation programme via the acceptable-use policy. No deception beyond the scope of the simulation itself.</td></tr>
+                            <tr><td>Purpose Limitation</td><td>Data collected is used solely for security training and risk assessment — never for performance management or disciplinary processes without separate HR process.</td></tr>
+                            <tr><td>Data Minimisation</td><td>Only click events, training completions, and risk scores are stored. No real credentials, message content, or sensitive personal data are captured.</td></tr>
+                            <tr><td>Storage Limitation</td><td>Simulation records are retained for a maximum of 12 months, then purged from the database.</td></tr>
+                            <tr><td>Integrity &amp; Confidentiality</td><td>All data is stored locally (SQLite/Firebase). Access is restricted to authorised admins with role-based authentication.</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h4 class="compliance-subsection">2.2 Computer Misuse Act 1990 (UK)</h4>
+                    <p>Phishing simulations could, if misdirected, fall under Section 1 (Unauthorised Access) or Section 3 (Unauthorised Acts) of the Computer Misuse Act 1990. PhishSim mitigates this through:</p>
+                    <ul class="compliance-list">
+                        <li>✅ Written authorisation from senior management before any simulation is launched</li>
+                        <li>✅ Simulated emails are sent only to registered internal users within the platform</li>
+                        <li>✅ No real phishing infrastructure is deployed — all landing pages are internal and educational</li>
+                        <li>✅ No real credentials are harvested, stored, or transmitted</li>
+                    </ul>
+
+                    <h4 class="compliance-subsection">2.3 ICO Guidance on Employee Monitoring</h4>
+                    <p>The Information Commissioner's Office (ICO) requires that employee monitoring be necessary, proportionate, and communicated. PhishSim complies by:</p>
+                    <ul class="compliance-list">
+                        <li>✅ Limiting tracking to the click of a simulated phishing link (binary event, not content)</li>
+                        <li>✅ Including simulation programme details in the organisation's Privacy Notice and Acceptable Use Policy</li>
+                        <li>✅ Not using results as grounds for disciplinary action without a separate HR procedure</li>
+                    </ul>
+
+                    <h4 class="compliance-subsection">2.4 Employment Law Considerations</h4>
+                    <p>Under the Employment Rights Act 1996 and common law duty of mutual trust, employees must not be subjected to covert, unfair, or unduly stressful monitoring. PhishSim addresses this by:</p>
+                    <ul class="compliance-list">
+                        <li>✅ Ensuring simulations are proportionate and not designed to humiliate</li>
+                        <li>✅ Providing immediate, supportive training feedback (not punitive messaging) when a link is clicked</li>
+                        <li>✅ Ensuring results feed into learning objectives, not performance ratings</li>
+                    </ul>
+                </div>
+
+                <!-- 3. Ethical Principles -->
+                <div class="card compliance-card">
+                    <h3 class="compliance-section-heading">3. Ethical Principles</h3>
+                    <div class="compliance-principles-grid">
+                        <div class="principle-card">
+                            <div class="principle-icon">🔍</div>
+                            <h4>Transparency</h4>
+                            <p>All employees are made aware that phishing simulations may occur as part of the organisation's security programme. The existence of the programme — though not individual simulation dates — is disclosed in advance.</p>
+                        </div>
+                        <div class="principle-card">
+                            <div class="principle-icon">⚖️</div>
+                            <h4>Proportionality</h4>
+                            <p>Simulation difficulty is calibrated to employee risk level. High-risk users receive harder simulations, but volume and intensity remain proportionate to organisational need.</p>
+                        </div>
+                        <div class="principle-card">
+                            <div class="principle-icon">🚫</div>
+                            <h4>No Entrapment</h4>
+                            <p>Simulations are educational, not punitive. The goal is behaviour change through awareness — not to "catch out" employees. Results are used to tailor training, not to discipline.</p>
+                        </div>
+                        <div class="principle-card">
+                            <div class="principle-icon">🔒</div>
+                            <h4>Data Minimisation</h4>
+                            <p>Only the minimum data necessary is recorded: whether a user clicked a simulated link, and whether they completed training. No keystroke logging, email content capture, or real credential collection occurs.</p>
+                        </div>
+                        <div class="principle-card">
+                            <div class="principle-icon">🤝</div>
+                            <h4>Respect &amp; Dignity</h4>
+                            <p>Simulated phishing emails avoid themes that could cause distress (e.g., bereavement, medical emergencies). All training feedback is constructive, supportive, and non-judgmental.</p>
+                        </div>
+                        <div class="principle-card">
+                            <div class="principle-icon">🌱</div>
+                            <h4>Continuous Improvement</h4>
+                            <p>The platform tracks behaviour change over time. The goal is measurable, sustained improvement in security resilience — not one-off compliance exercises.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Consent & Authorisation -->
+                <div class="card compliance-card">
+                    <h3 class="compliance-section-heading">4. Consent &amp; Authorisation</h3>
+                    <p>Before any phishing simulation campaign is launched, the following authorisation chain must be completed:</p>
+                    <table class="compliance-table">
+                        <thead><tr><th>Level</th><th>Required Authorisation</th><th>Form</th></tr></thead>
+                        <tbody>
+                            <tr><td>1 — Board / Senior Management</td><td>Written approval for the simulation programme</td><td>Signed Authorisation Letter</td></tr>
+                            <tr><td>2 — IT Security / DPO</td><td>DPIA (Data Protection Impact Assessment) signed off</td><td>DPIA Document</td></tr>
+                            <tr><td>3 — HR</td><td>Employee notification included in AUP / Privacy Notice update</td><td>Updated Policy Document</td></tr>
+                            <tr><td>4 — Admin User</td><td>Platform account with appropriate role created and audited</td><td>Platform Access Log</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="compliance-notice notice-amber">
+                        ⚠️ <strong>Note:</strong> Employee consent to individual simulation campaigns is <em>not</em> required — informed awareness of the programme at organisational level is sufficient under UK GDPR Legitimate Interests. Individual opt-out mechanisms are not provided as this would undermine the security objective.
+                    </div>
+                </div>
+
+                <!-- 5. Data Handling -->
+                <div class="card compliance-card">
+                    <h3 class="compliance-section-heading">5. Data Handling &amp; Storage</h3>
+                    <table class="compliance-table">
+                        <thead><tr><th>Data Type</th><th>Stored?</th><th>Purpose</th><th>Retention</th></tr></thead>
+                        <tbody>
+                            <tr><td>Employee Name &amp; Email</td><td>✅ Yes</td><td>Campaign targeting &amp; reporting</td><td>Active employment + 6 months</td></tr>
+                            <tr><td>Department</td><td>✅ Yes</td><td>Risk segmentation &amp; analytics</td><td>Active employment + 6 months</td></tr>
+                            <tr><td>Simulation Click Event (boolean)</td><td>✅ Yes</td><td>Risk scoring &amp; training trigger</td><td>12 months</td></tr>
+                            <tr><td>Training Completion Event</td><td>✅ Yes</td><td>Compliance reporting</td><td>12 months</td></tr>
+                            <tr><td>Real Credentials / Passwords</td><td>🚫 Never</td><td>N/A — never solicited</td><td>N/A</td></tr>
+                            <tr><td>Email Content / Keystrokes</td><td>🚫 Never</td><td>N/A — not captured</td><td>N/A</td></tr>
+                            <tr><td>IP Addresses</td><td>🚫 Never</td><td>N/A — not logged</td><td>N/A</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 6. Roles & Responsibilities -->
+                <div class="card compliance-card">
+                    <h3 class="compliance-section-heading">6. Roles &amp; Responsibilities</h3>
+                    <table class="compliance-table">
+                        <thead><tr><th>Role</th><th>Responsibilities</th></tr></thead>
+                        <tbody>
+                            <tr><td>👤 <strong>Platform Administrator</strong></td><td>Creates campaigns, manages users, reviews analytics. Ensures simulations comply with approved parameters. Must not target users outside the authorised scope.</td></tr>
+                            <tr><td>🛡️ <strong>Data Protection Officer (DPO)</strong></td><td>Signs off the DPIA. Advises on data minimisation and retention. Reviews the programme annually against regulatory changes.</td></tr>
+                            <tr><td>👥 <strong>HR</strong></td><td>Updates Acceptable Use Policy and Privacy Notice. Ensures employees are informed. Handles any employee grievances arising from the programme.</td></tr>
+                            <tr><td>💼 <strong>Senior Management</strong></td><td>Grants written approval. Owns the organisational risk appetite. Reviews programme outcomes quarterly.</td></tr>
+                            <tr><td>🔒 <strong>IT Security Team</strong></td><td>Manages platform access controls. Ensures the tool is deployed on secure infrastructure. Conducts annual security review of the tool itself.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 7. Compliance Checklist -->
+                <div class="card compliance-card" id="compliance-checklist-card">
+                    <h3 class="compliance-section-heading">7. Pre-Launch Compliance Checklist</h3>
+                    <p style="color:var(--text-secondary);margin-bottom:1.25rem;">Complete all items below before launching any phishing simulation campaign.</p>
+                    <div class="checklist-grid">
+                        <label class="checklist-item"><input type="checkbox" id="chk1"><span>Written management authorisation obtained and filed</span></label>
+                        <label class="checklist-item"><input type="checkbox" id="chk2"><span>DPIA completed and signed by DPO</span></label>
+                        <label class="checklist-item"><input type="checkbox" id="chk3"><span>Employee Acceptable Use Policy updated to reference simulation programme</span></label>
+                        <label class="checklist-item"><input type="checkbox" id="chk4"><span>Privacy Notice updated to reflect simulation data processing</span></label>
+                        <label class="checklist-item"><input type="checkbox" id="chk5"><span>All simulation targets are registered internal employees only</span></label>
+                        <label class="checklist-item"><input type="checkbox" id="chk6"><span>No real credentials are solicited or captured in landing pages</span></label>
+                        <label class="checklist-item"><input type="checkbox" id="chk7"><span>Campaign templates reviewed — no distressing themes used</span></label>
+                        <label class="checklist-item"><input type="checkbox" id="chk8"><span>Training module linked to clicked-link redirect (immediate feedback)</span></label>
+                        <label class="checklist-item"><input type="checkbox" id="chk9"><span>Data retention policy configured (12-month limit)</span></label>
+                        <label class="checklist-item"><input type="checkbox" id="chk10"><span>Admin access restricted to approved personnel only</span></label>
+                        <label class="checklist-item"><input type="checkbox" id="chk11"><span>Post-campaign debrief scheduled for management</span></label>
+                        <label class="checklist-item"><input type="checkbox" id="chk12"><span>Annual programme review date logged with DPO</span></label>
+                    </div>
+                    <div id="checklist-progress" style="margin-top:1.25rem;font-size:.9rem;color:var(--text-secondary);"></div>
+                </div>
+
+                <!-- Footer -->
+                <div class="compliance-footer">
+                    <p>📝 <strong>PhishSim Legal &amp; Ethical Compliance Analysis</strong> — v7.0 — March 2026</p>
+                    <p>This document should be reviewed annually or whenever relevant legislation changes. Contact your Data Protection Officer for guidance.</p>
+                </div>
+
             </section>
         </main>
     </div>
 
-    <!-- Modal for Campaign Creation -->
+    <!-- Campaign Creation Modal -->
     <div id="campaign-modal" class="modal">
         <div class="modal-content">
-            <span class="close">&times;</span>
+            <button class="close" aria-label="Close">&times;</button>
             <h2>Create New Campaign</h2>
             <form id="campaign-form">
                 <div class="form-group">
                     <label for="campaign-name">Campaign Name:</label>
                     <input type="text" id="campaign-name" required>
                 </div>
-
                 <div class="form-group">
                     <label for="campaign-difficulty">Difficulty:</label>
                     <select id="campaign-difficulty" required>
@@ -327,14 +838,12 @@
                         <option value="Hard">Hard</option>
                     </select>
                 </div>
-
                 <div class="form-group">
                     <label for="campaign-template">Template:</label>
                     <select id="campaign-template" required>
                         <option value="">Select a template...</option>
                     </select>
                 </div>
-
                 <div class="form-group">
                     <label for="campaign-segment">Target Segment:</label>
                     <select id="campaign-segment" required>
@@ -344,7 +853,6 @@
                         <option value="low_risk">Low Risk Only</option>
                     </select>
                 </div>
-
                 <div class="modal-actions">
                     <button type="submit" class="btn btn-primary">Create Campaign</button>
                     <button type="button" class="btn btn-secondary" id="cancel-campaign">Cancel</button>

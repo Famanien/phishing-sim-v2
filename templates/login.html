@@ -4,173 +4,610 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In - Secure Corporate Portal</title>
+    <title>Sign In – Secure Corporate Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
             margin: 0;
-            color: #333;
+            padding: 0;
         }
 
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f3f4f6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #1f2937;
+        }
+
+        /* ── Top bar ──────────────────────────────────────────── */
+        .corp-topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #1e3a5f;
+            color: white;
+            font-size: 0.78rem;
+            padding: .45rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .corp-topbar a {
+            color: #93c5fd;
+            text-decoration: none;
+        }
+
+        /* ── Card ────────────────────────────────────────────── */
         .login-container {
-            background-color: white;
-            padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, .1), 0 1px 4px rgba(0, 0, 0, .06);
             width: 100%;
-            max-width: 400px;
-            text-align: center;
+            max-width: 420px;
+            overflow: hidden;
+            position: relative;
         }
 
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #1a73e8;
-            margin-bottom: 20px;
+        .card-header {
+            background: #1e3a5f;
+            padding: 2rem 2rem 1.5rem;
+            text-align: center;
+            color: white;
+        }
+
+        .corp-logo {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: .6rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: .25rem;
         }
 
-        .logo-icon {
-            font-size: 28px;
+        .corp-logo-icon {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, .15);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
         }
 
-        h2 {
-            margin-bottom: 20px;
-            color: #444;
-            font-weight: 500;
+        .card-header p {
+            font-size: .8rem;
+            color: rgba(255, 255, 255, .7);
+            margin-top: .25rem;
+        }
+
+        /* ── Form area ───────────────────────────────────────── */
+        .card-body {
+            padding: 2rem;
         }
 
         .form-group {
-            margin-bottom: 20px;
-            text-align: left;
+            margin-bottom: 1.25rem;
         }
 
         label {
             display: block;
-            margin-bottom: 5px;
-            font-size: 14px;
-            color: #555;
+            font-size: .8rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: .4rem;
+            text-transform: uppercase;
+            letter-spacing: .05em;
         }
 
         input[type="email"],
         input[type="password"] {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-            font-size: 16px;
+            padding: .75rem 1rem;
+            border: 1.5px solid #d1d5db;
+            border-radius: 8px;
+            font-size: .925rem;
+            font-family: inherit;
+            transition: border-color .2s, box-shadow .2s;
+            background: #fafafa;
         }
 
         input:focus {
-            border-color: #1a73e8;
+            border-color: #2563eb;
             outline: none;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+            background: white;
         }
 
-        .btn {
-            background-color: #1a73e8;
+        .forgot-link {
+            display: block;
+            text-align: right;
+            font-size: .78rem;
+            color: #2563eb;
+            text-decoration: none;
+            margin-top: .35rem;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: .85rem;
+            background: #1e3a5f;
             color: white;
-            padding: 12px;
             border: none;
-            border-radius: 4px;
-            width: 100%;
-            font-size: 16px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
             cursor: pointer;
-            font-weight: 500;
-            transition: background 0.2s;
+            transition: background .2s, transform .15s;
+            margin-top: .5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
         }
 
-        .btn:hover {
-            background-color: #1557b0;
+        .btn-login:hover {
+            background: #16304f;
+            transform: translateY(-1px);
         }
 
-        .alert {
-            background-color: #fce8e6;
-            color: #d93025;
-            padding: 12px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            font-size: 14px;
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .btn-login .spinner {
             display: none;
-            border: 1px solid #fad2cf;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, .4);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
         }
 
-        .footer {
-            margin-top: 20px;
-            font-size: 12px;
-            color: #888;
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
         }
 
-        .sim-banner {
-            background-color: #d93025;
-            color: white;
-            text-align: center;
-            padding: 5px;
-            font-size: 12px;
-            position: fixed;
-            top: 0;
-            left: 0;
+        .sso-divider {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            margin: 1.25rem 0;
+            font-size: .78rem;
+            color: #9ca3af;
+        }
+
+        .sso-divider::before,
+        .sso-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e5e7eb;
+        }
+
+        .btn-sso {
             width: 100%;
+            padding: .7rem;
+            border: 1.5px solid #d1d5db;
+            border-radius: 8px;
+            background: white;
+            font-size: .875rem;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            color: #374151;
+            transition: background .2s, border-color .2s;
+        }
+
+        .btn-sso:hover {
+            background: #f9fafb;
+            border-color: #9ca3af;
+        }
+
+        .card-footer {
+            background: #f9fafb;
+            border-top: 1px solid #f3f4f6;
+            padding: 1rem 2rem;
+            text-align: center;
+            font-size: .75rem;
+            color: #9ca3af;
+        }
+
+        .security-badges {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: .65rem;
+            font-size: .7rem;
+        }
+
+        .security-badges span {
+            color: #6b7280;
+        }
+
+        /* ── Phishing Reveal Overlay ──────────────────────────── */
+        .reveal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .7);
+            backdrop-filter: blur(6px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .4s ease;
+        }
+
+        .reveal-overlay.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .reveal-card {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            max-width: 560px;
+            width: 100%;
+            overflow: hidden;
+            transform: scale(.92) translateY(20px);
+            transition: transform .4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, .6);
+        }
+
+        .reveal-overlay.visible .reveal-card {
+            transform: scale(1) translateY(0);
+        }
+
+        .reveal-header {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .reveal-alarm {
+            font-size: 2.5rem;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.15);
+            }
+        }
+
+        .reveal-header-text h2 {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .reveal-header-text p {
+            color: rgba(255, 255, 255, .8);
+            font-size: .85rem;
+            margin-top: .25rem;
+        }
+
+        .reveal-body {
+            padding: 1.5rem 2rem;
+        }
+
+        .reveal-body>p {
+            color: #94a3b8;
+            font-size: .875rem;
+            margin-bottom: 1.25rem;
+            line-height: 1.6;
+        }
+
+        .indicators {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: .6rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .indicator {
+            display: flex;
+            align-items: flex-start;
+            gap: .75rem;
+            background: rgba(239, 68, 68, .08);
+            border: 1px solid rgba(239, 68, 68, .2);
+            border-radius: 10px;
+            padding: .75rem 1rem;
+        }
+
+        .indicator-icon {
+            font-size: 1.15rem;
+            flex-shrink: 0;
+            margin-top: -.05rem;
+        }
+
+        .indicator-text {
+            font-size: .83rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+
+        .indicator-text strong {
+            color: #f87171;
+        }
+
+        .safe-tip {
+            background: rgba(16, 185, 129, .08);
+            border: 1px solid rgba(16, 185, 129, .25);
+            border-radius: 10px;
+            padding: .85rem 1rem;
+            display: flex;
+            gap: .75rem;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .safe-tip-text {
+            font-size: .83rem;
+            color: #a7f3d0;
+            line-height: 1.5;
+        }
+
+        .safe-tip-text strong {
+            color: #34d399;
+        }
+
+        .reveal-actions {
+            display: flex;
+            gap: .75rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-reveal-primary {
+            flex: 1;
+            padding: .75rem 1.25rem;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: .9rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: transform .2s, box-shadow .2s;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, .35);
+        }
+
+        .btn-reveal-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(99, 102, 241, .45);
+        }
+
+        .btn-reveal-secondary {
+            padding: .75rem 1.25rem;
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #94a3b8;
+            border-radius: 10px;
+            font-size: .9rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background .2s, color .2s;
+        }
+
+        .btn-reveal-secondary:hover {
+            background: #334155;
+            color: #f1f5f9;
+        }
+
+        .reveal-footer {
+            border-top: 1px solid #1e293b;
+            padding: 1rem 2rem;
+            text-align: center;
+            font-size: .72rem;
+            color: #475569;
         }
     </style>
 </head>
 
 <body>
 
-    <!-- Optional banner for simulation clarity (can be hidden for realism) -->
-    <!-- <div class="sim-banner">Phishing Simulation - Educational Purposes Only</div> -->
+    <!-- Minimal corporate top bar -->
+    <div class="corp-topbar">
+        <span>🔒 Enterprise Identity Services</span>
+        <span><a href="#">Help</a> &nbsp;|&nbsp; <a href="#">Privacy</a></span>
+    </div>
 
+    <!-- Login card -->
     <div class="login-container">
-        <div class="logo">
-            <span class="logo-icon">🏢</span>
-            <span>CorporateSecure</span>
+        <div class="card-header">
+            <div class="corp-logo">
+                <div class="corp-logo-icon">🏢</div>
+                CorporateSecure
+            </div>
+            <p>Sign in with your organisation account</p>
         </div>
 
-        <h2>Sign in</h2>
+        <div class="card-body">
+            <form id="login-form" novalidate>
+                <div class="form-group">
+                    <label for="email">Email address</label>
+                    <input type="email" id="email" name="email" placeholder="you@company.com" required
+                        autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="••••••••" required
+                        autocomplete="current-password">
+                    <a href="#" class="forgot-link" onclick="return false;">Forgot password?</a>
+                </div>
+                <button type="submit" class="btn-login" id="login-btn">
+                    <span class="spinner" id="login-spinner"></span>
+                    <span id="login-label">Sign In</span>
+                </button>
+            </form>
 
-        <div id="error-msg" class="alert">
-            Incorrect email or password. Please try again.
+            <div class="sso-divider">Or continue with</div>
+
+            <button class="btn-sso" onclick="triggerReveal()">
+                <span>🪟</span> Microsoft SSO
+            </button>
         </div>
 
-        <form id="login-form">
-            <div class="form-group">
-                <label for="email">Email address</label>
-                <input type="email" id="email" name="email" required>
+        <div class="card-footer">
+            <div>Protected by Enterprise Identity Service &nbsp;•&nbsp; © 2025 CorporateSecure</div>
+            <div class="security-badges">
+                <span>🔐 256-bit encrypted</span>
+                <span>🛡️ SOC 2 compliant</span>
+                <span>✅ ISO 27001</span>
             </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
+            <div style="margin-top:.75rem;font-size:.8rem;color:#6b7280;">
+                Don't have an account?
+                <a href="/signup" style="color:#2563eb;font-weight:600;text-decoration:none;">Create one</a>
             </div>
-            <button type="submit" class="btn">Sign In</button>
-        </form>
+        </div>
+    </div>
 
-        <div class="footer">
-            <p>Protected by Enterprise Identity Service</p>
-            <p>&copy; 2024 Secure Corporate Portal</p>
+    <!-- ── Phishing Reveal Overlay ────────────────────────────── -->
+    <div class="reveal-overlay" id="reveal-overlay">
+        <div class="reveal-card">
+            <div class="reveal-header">
+                <div class="reveal-alarm">🚨</div>
+                <div class="reveal-header-text">
+                    <h2>Phishing Simulation – You Were Caught!</h2>
+                    <p>This was a safety test from your organisation's security team. No real credentials were captured.
+                    </p>
+                </div>
+            </div>
+
+            <div class="reveal-body">
+                <p>
+                    In a real attack, the credentials you just entered would now be in the hands of an attacker.
+                    Here's what should have given this page away:
+                </p>
+
+                <ul class="indicators">
+                    <li class="indicator">
+                        <span class="indicator-icon">🔗</span>
+                        <div class="indicator-text">
+                            <strong>Suspicious URL</strong> — The address bar showed <code
+                                style="background:rgba(255,255,255,.08);padding:.1rem .35rem;border-radius:4px;">127.0.0.1:5000/login</code>
+                            instead of your company's real domain.
+                        </div>
+                    </li>
+                    <li class="indicator">
+                        <span class="indicator-icon">📧</span>
+                        <div class="indicator-text">
+                            <strong>You arrived via a link</strong> — Legitimate sign-in pages are accessed by
+                            navigating directly, not from an email link.
+                        </div>
+                    </li>
+                    <li class="indicator">
+                        <span class="indicator-icon">⏰</span>
+                        <div class="indicator-text">
+                            <strong>Urgency or pressure</strong> — The original email likely created a sense of urgency
+                            to make you act without thinking.
+                        </div>
+                    </li>
+                    <li class="indicator">
+                        <span class="indicator-icon">🔏</span>
+                        <div class="indicator-text">
+                            <strong>No MFA prompt appeared</strong> — Real corporate portals typically require
+                            multi-factor authentication.
+                        </div>
+                    </li>
+                </ul>
+
+                <div class="safe-tip">
+                    <span style="font-size:1.25rem;flex-shrink:0;">💡</span>
+                    <div class="safe-tip-text">
+                        <strong>What to do next time:</strong> Always check the URL before entering credentials. If you
+                        clicked a link in an email, navigate to the company portal directly in a fresh browser tab
+                        instead.
+                    </div>
+                </div>
+
+                <div class="reveal-actions">
+                    <button class="btn-reveal-primary" onclick="goToTraining()">📚 Go to Security Training</button>
+                    <button class="btn-reveal-secondary" onclick="goToDashboard()">← Back to Dashboard</button>
+                </div>
+            </div>
+
+            <div class="reveal-footer">
+                PhishSim v7.0 – Sprint 7 &nbsp;|&nbsp; Simulation Only – Educational Purposes &nbsp;|&nbsp; No real data
+                was captured
+            </div>
         </div>
     </div>
 
     <script>
         document.getElementById('login-form').addEventListener('submit', function (e) {
             e.preventDefault();
-            // In a real simulation, this would log credentials and redirect
-            // For this demo, we'll just show an alert or redirect to education
-
-            const email = document.getElementById('email').value;
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
+            if (!email || !password) return;
 
-            if (email && password) {
-                // Simulate "capture" and redirect to education
-                alert("⚠ OPS! You just entered your credentials on a simulated phishing page.\n\nIn a real attack, your account would be compromised.\n\nRedirecting you to security training...");
-                window.location.href = "/training";
+            // Show loading spinner
+            document.getElementById('login-spinner').style.display = 'block';
+            document.getElementById('login-label').textContent = 'Signing in…';
+            document.getElementById('login-btn').disabled = true;
+
+            // Short delay for realism then show reveal
+            setTimeout(triggerReveal, 1200);
+        });
+
+        function triggerReveal() {
+            // Reset button state
+            document.getElementById('login-spinner').style.display = 'none';
+            document.getElementById('login-label').textContent = 'Sign In';
+            document.getElementById('login-btn').disabled = false;
+
+            const overlay = document.getElementById('reveal-overlay');
+            overlay.classList.add('visible');
+        }
+
+        function goToTraining() {
+            window.location.href = '/';
+            // Navigate to dashboard and then open training tab
+            sessionStorage.setItem('phishsim_open_section', 'training');
+        }
+
+        function goToDashboard() {
+            window.location.href = '/';
+        }
+
+        // Check if we need to auto-open training on dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            const section = sessionStorage.getItem('phishsim_open_section');
+            if (section) {
+                sessionStorage.removeItem('phishsim_open_section');
+                // will be picked up on dashboard page — no-op here
             }
         });
     </script>
